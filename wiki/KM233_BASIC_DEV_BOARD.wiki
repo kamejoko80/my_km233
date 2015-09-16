@@ -1,0 +1,21 @@
+= THIẾT KẾ BOARD LINUX ĐƠN GIẢN NHẤT =
+
+Cùng với KM233_SOM chúng ta có thể thiết kế ra 1 dev board chạy Linux đơn giản nhất theo sơ đồ như sau :
+
+[http://stm32vn.googlecode.com/svn/trunk/image/IMX233/Simple_Dev_Board.PNG]
+
+= NHỮNG LINH KIỆN THỤ ĐỘNG BÊN NGOÀI CẦN THÊM VÀO =
+
+{{{
+1> JACK cắm nguồn DC 5V.
+2> 5 điện trở 47k.
+3> 1 nút nhấn nhả reset.
+4> 1 connector 3 pin kết nối với UART (mức 3.3 volt), dùng làm Linux console.
+}}}
+
+Các chân còn lại trên sơ đồ có thể để NC (no connect).
+
+Với sơ đồ trên, ta có được 1 board đơn giản để có thể kiểm chứng việc boot Linux từ KM233_SOM như thế nào.
+ 
+
+    

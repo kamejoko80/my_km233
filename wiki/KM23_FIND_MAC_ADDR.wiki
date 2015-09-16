@@ -1,0 +1,96 @@
+#summary One-sentence summary of this page.
+
+= Tìm MAC Address thông qua IP Address =
+
+ Có thể tìm MAC address của 1 thiết bị trong mạng LAN bằng cách dùng lệnh (Linux) như sau:
+
+Cách 1:
+
+{{{
+# ping -c 1 -s 1 192.168.3.39
+PING 192.168.3.39 (192.168.3.39) 1(29) bytes of data.
+9 bytes from 192.168.3.39: icmp_seq=1 ttl=128
+
+--- 192.168.3.39 ping statistics ---
+1 packets transmitted, 1 received, 0% packet loss, time 0ms
+
+#  arp -na
+? (192.168.3.28) at 00:16:76:4b:a0:11 [ether] on eth1
+? (192.168.3.39) at 00:13:d3:da:5a:6e [ether] on eth1
+? (192.168.3.249) at 00:1c:c0:32:07:cb [ether] on eth1
+}}}
+
+Ta được địa chỉ MAC của IP 39 là 00:13:d3:da:5a:6e 
+
+Cách 2:
+
+{{{
+# arping -I eth1 192.168.3.39
+ARPING 192.168.3.39 from 192.168.3.18 eth1
+Unicast reply from 192.168.3.39 [00:13:D3:DA:5A:6E]  0.627ms
+Unicast reply from 192.168.3.39 [00:13:D3:DA:5A:6E]  0.613ms
+Unicast reply from 192.168.3.39 [00:13:D3:DA:5A:6E]  0.608ms
+Unicast reply from 192.168.3.39 [00:13:D3:DA:5A:6E]  0.597ms
+}}}
+
+Ta được kết quả tương tự 00:13:D3:DA:5A:6E
+
+=Ứng Dụng=
+
+Từ cách này ta có thể tìm ra địa chỉ IP của thiết bị nhúng thông qua địa chỉ MAC address cho trước.
+
+----
+
+= Các thao tác cấu hình sử dụng ramdisk = 
+
+Đọc thông tin cấu hình từ vùng config (được lưu trữ trong flash...) ghi vào thư mục /etc/config:
+
+{{{
+flatfsd -r
+}}}
+
+Lưu thông tin từ thư mục /etc/config vào vùng config:
+
+{{{
+flatfsd -s
+}}}
+
+Khởi động vùng config:
+
+Thao tác thực hiện lưu thông tin từ /etc/default vào vùng cấu hình và đồng thời chép thông tin vào thư mục /etc/config
+
+{{{
+flatfsd -w
+}}}
+
+==Ví dụ==
+
+Edit file sau: 
+
+{{{
+/etc/config/interfaces
+}}}
+
+{{{
+auto lo eth0
+iface lo inet loopback
+iface eth0 inet static
+address 192.168.3.29
+netmask 255.255.255.0
+network 192.168.3.0
+broadcast 192.168.3.255
+gateway 192.168.3.2
+}}}
+
+{{{
+flatfsd -s
+}}}
+
+Tham khảo:
+
+[http://www.ucdot.org/article.pl?sid=04/01/18/2312200]
+
+[http://download.atmark-techno.com/armadillo-440/document/armadillo-440_startup_guide_en-1.1.1.pdf]
+
+[http://signagexpress.com/sb/sb/demo/channel2/]
+[http://www.hongkiat.com/blog/48-excellent-html5-demos/]

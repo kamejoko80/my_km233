@@ -1,0 +1,1 @@
+http://src.develer.com/gitweb/pub/users/arighi/santerno-imx23/tree/HEAD:/kernel/linux/arch

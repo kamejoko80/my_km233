@@ -1,0 +1,223 @@
+#summary One-sentence summary of this page.
+
+= Porting SD8686 WIFI Drivers to Android =
+
+My iMX53 custom board has a Marvell's 88W8686 based Wifi module (LBWA18HEPZ), and I'm using the Android 2.3 from Andeneo (i.MX53-QSB-Android-Gingerbread-Release4.3 released). Unfortunately, the driver of this Wifi module is not available in the source tree. Google something but got little information except Mr PaNic has a very nice guide [http://blog.linuxconsulting.ro/2010/04/porting-wifi-drivers-to-android.html on his blog].
+
+Following the guide and learn many experiment from some peoples who comment on the blog, so I decided to try once. After success of porting I need to write this document and hope it can help someone will not spend alot of time like me.
+
+== 1> Prepare Linux kernel, libertas driver ==
+
+My custom board based on IMX53QS-R and using ESDHC2 to interface with the SD8686 wifi module, so we need add some peripheral init code into the mx53_loco.c:
+
+  - Config mmc2 pinmux:  
+{{{
+ static iomux_v3_cfg_t mx53_loco_pads[] = {
+      ...
+	MX53_PAD_SD2_DATA0__ESDHC2_DAT0,
+	MX53_PAD_SD2_DATA1__ESDHC2_DAT1,
+	MX53_PAD_SD2_DATA2__ESDHC2_DAT2,
+	MX53_PAD_SD2_DATA3__ESDHC2_DAT3,
+	MX53_PAD_SD2_CLK__ESDHC2_CLK,
+	MX53_PAD_SD2_CMD__ESDHC2_CMD,
+      ...
+ }
+}}}
+ 
+  - Add mmc2 init platform data:
+
+{{{
+ static struct mxc_mmc_platform_data mmc2_data = {
+	.ocr_mask = MMC_VDD_27_28 | MMC_VDD_28_29 | MMC_VDD_29_30
+		| MMC_VDD_31_32,
+	.caps = MMC_CAP_4_BIT_DATA,
+	.min_clk = 400000,
+	.max_clk = 50000000,
+	.card_inserted_state = 1,
+	.clock_mmc = "esdhc_clk",
+	.power_mmc = NULL,
+ };
+}}}
+
+  - Add register:
+
+{{{
+ static void __init mxc_board_init(void)
+ {
+     ...
+	mxc_register_device(&mxcsdhc1_device, &mmc1_data);
+	mxc_register_device(&mxcsdhc2_device, &mmc2_data);
+	mxc_register_device(&mxcsdhc3_device, &mmc3_data);
+     ...
+ }
+}}}  
+
+  - Patch libertas driver and configure the Linux kernel:
+
+There is a bug in libertas driver related with firmware reload. Although there is no problem if our hardware design using an extra GPIO to drive the nRST or control switch on/off power circuit of the SD card before modprobe the wifi driver. But almost external SDIO wifi module doesn't have thease parts. Workaround we need to modify the if_sdio.c :
+
+   .File location : kernel_imx/drivers/net/wireless/libertas/if_sdio.c
+   
+   .Patch file : [http://km233.googlecode.com/svn/trunk/porting/common/KMWIFI/libertas/Bug/if_sdio_linux-2.6.35.patch if_sdio_linux-2.6.35.patch]
+
+   Or we can also copy and overwrite the [http://km233.googlecode.com/svn/trunk/porting/common/KMWIFI/libertas/Bug/if_sdio(fix_fw_reload).c if_sdio(fix_fw_reload).c] into the source tree.
+
+  - Configure kernel and build libertas driver module:
+
+   Linux Kernel Configuration -> Networking Suport -> Wireless
+
+   {{{
+    <*> cfg80211 - wireless configuration API
+    [*] cfg80211 wireless extensions compatibility
+    [*] Wireless extensions sysfs files
+    <*> Generic IEEE 802.11 Networking Stack (mac80211) 
+   }}}
+
+  Linux Kernel Configuration --> Device Drivers --> Network device support --> Wireless LAN
+
+   {{{
+    <*> Marvell 8xxx Libertas WLAN driver support
+    [M] Marvell Libertas 8385/8686/8688 SDIO 802.11b/g cards 
+   }}}
+
+  After building module, we have libertas_sdio.ko
+
+== 2> Configure wpa_supplicant ==
+
+  - Configure building:
+
+   .File location : src/device/fsl/imx53_loco/BoardConfig.mk
+
+   Remove some previous Atheros defines and add some lines as bellow:
+
+   {{{
+      ... 
+      WIFI_DRIVER_MODULE_PATH     := "/system/lib/modules/libertas_sdio.ko"
+      WIFI_DRIVER_MODULE_NAME     := "libertas_sdio"
+      BOARD_WIFI_LIBRARIES        := true
+      WPA_BUILD_SUPPLICANT        := true
+      WPA_SUPPLICANT_VERSION      := VER_0_5_X
+      BOARD_WPA_SUPPLICANT_DRIVER := AWEXT
+      ...
+   }}}
+
+  - Patch source wpa_supplicant:
+
+  Follow Mr PaNic, an extra driver awext need to be added for properly operation:
+
+  .File location: src/external/wpa_supplicant
+
+  .Patch file: [http://km233.googlecode.com/svn/trunk/porting/common/KMWIFI/Android/wpa_supplicant_ver_0_5_x.patch wpa_supplicant_ver_0_5_x.patch] 
+
+  . Or copy and paste Patched files: [http://km233.googlecode.com/svn/trunk/porting/common/KMWIFI/Android/wpa_supplicant_ver_0_5_x/ wpa_supplicant_ver_0_5_x]
+
+  .The wpa_suplicant.conf will be modified as bellow:
+
+  {{{
+     ctrl_interface=DIR=/data/misc/wifi/wpa_supplicant GROUP=wifi
+     update_config=1
+     eapol_version=1
+     ap_scan=1
+     fast_reauth=1
+  }}}
+
+  This configuration file will be copied to the Android rootfs when deploy the image.
+
+== 3> Modify the Android wifi HAL ==
+
+   .File location: src/hardware/libhardware_legacy/wifi/wifi.c
+
+   .Patch file: [http://km233.googlecode.com/svn/trunk/porting/common/KMWIFI/Android/wifi.c.patch wifi.c.patch]
+
+   .Patched file: [http://km233.googlecode.com/svn/trunk/porting/common/KMWIFI/Android/wifi.c wifi.c]
+ 
+   {{{
+      Note that
+  
+      static const char IFACE_DIR[]= "/data/misc/wifi/wpa_supplicant";
+
+      the same with
+
+      ctrl_interface=DIR=/data/misc/wifi/wpa_supplicant
+
+      in the wpa_suplicant.conf  
+   }}} 
+
+== 4> Get permission for file accessing of wifi group ==
+
+     .File location: src/device/fsl/imx5x/init.rc
+
+     .Patched file: [http://km233.googlecode.com/svn/trunk/porting/common/KMWIFI/Android/imx5x/init.rc init.rc]
+      
+      {{{
+    # give system access to wpa_supplicant.conf for backup and restore
+    mkdir /system/etc/wifi 0770 wifi wifi
+    chmod 0770 /system/etc/wifi
+    chmod 0660 /system/etc/wifi/wpa_supplicant.conf
+    chown wifi wifi /system/etc/wifi/wpa_supplicant.conf
+    mkdir /data/misc/wifi 0770 wifi wifi
+    mkdir /data/misc/wifi/sockets 0770 wifi wifi
+    chmod 0770 /data/misc/wifi
+    chmod 0660 /data/misc/wifi/wpa_supplicant.conf
+
+    # Used by wifi.c wpa_ctrl_open
+    mkdir /data/misc/wifi/wpa_supplicant 0777 wifi wifi
+    chmod 0777 /data/misc/wifi/wpa_supplicant
+    chown wifi wifi /data/misc/wifi/wpa_supplicant
+
+    # Prepare for wifi
+    mkdir /data/misc/dhcp 0770 dhcp dhcp
+    chmod 0770 /data/misc/dhcp
+    setprop wifi.interface "wlan0"
+    setprop wlan.interface "wlan0"   
+      }}} 
+
+    .File location: src/device/fsl/imx53_loco/init.rc
+
+    .Patched file: [http://km233.googlecode.com/svn/trunk/porting/common/KMWIFI/Android/imx53_loco/init.rc init.rc]
+
+     When deploy, this file will renamed to init.freescale.rc
+
+     {{{
+    service dhcpcd /system/bin/logwrapper /system/bin/dhcpcd -d -B wlan0
+    group system dhcp
+    disabled
+    oneshot
+
+    service wpa_supplicant /system/bin/logwrapper /system/bin/wpa_supplicant -Dawext -iwlan0 -c/data/misc/wifi/wpa_supplicant.conf
+    user root
+    group system wifi inet dhcps
+    socket wpa_wlan0 dgram 660 wifi wifi
+    disabled
+    oneshot
+     }}}    
+
+    Now, the Android souce is ready ro build      
+ 
+== 5> Copy driver module, firmware into Android rootfs ==
+   
+    - Copy libertas_sdio.ko to /system/lib/modules/
+
+    - Copy [http://km233.googlecode.com/svn/trunk/porting/common/KMWIFI/libertas/SDIO/normal/firmware/lib/firmware/sd8686_helper.bin sd8686_helper.bin] to /system/etc/firmware/
+
+    - Copy [http://km233.googlecode.com/svn/trunk/porting/common/KMWIFI/libertas/SDIO/normal/firmware/lib/firmware/sd8686.bin sd8686.bin] /system/etc/firmware/      
+
+   We can check the ctrl_interface location as bellow :  
+   {{{
+     bash-3.2# ls -l /data/misc/wifi/wpa_supplicant
+     srwxrwx--- wifi     wifi              1970-01-02 00:00 wlan0
+   }}}   
+   
+    [http://km233.googlecode.com/svn/trunk/image/VNTRE_WIFI.jpg]
+
+-----------------------
+All patched files can be download here:
+[http://km233.googlecode.com/svn/trunk/porting/common/KMWIFI/ KMWIFI]
+
+Good luck and enjoy.
+
+
+   
+
+
+    

@@ -1,0 +1,61 @@
+= USING I2C WITH U-BOOT =
+
+This guide shows how to test I2C EEPROM (AT24C08) by using u-boot commands:
+
+*Detect I2C EEPROM
+
+{{{
+KM233> i2c probe
+Valid chip addresses: 50 51 52 53 54 55 56 57
+}}}
+
+*Modify some locations in DDR memory
+
+{{{
+KM233> mm.b 40000000
+40000000: ff ? 11
+40000001: ff ? 22
+40000002: ff ? 33
+40000003: ff ? 44
+40000004: ff ? 55
+40000005: ff ? 66
+40000006: ff ? 77
+40000007: ff ? 88
+40000008: ff ? q
+}}}
+
+*Check memory data is correct?
+
+{{{
+KM233> md.b 40000000
+40000000: 11 22 33 44 55 66 77 88 ff ff ff ff ff ff ff ff    ."3DUfw.........
+40000010: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
+40000020: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
+40000030: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
+}}}
+
+*Write 8 bytes into the eeprom
+
+{{{
+KM233> eeprom write 40000000 0 8
+
+EEPROM @0x50 write: addr 40000000  off 0000  count 8 ... done
+}}}
+
+*Data read back
+
+{{{
+KM233> eeprom read 40000010 0 8
+
+EEPROM @0x50 read: addr 40000010  off 0000  count 8 ... done
+}}}
+
+*Check memory data
+
+{{{
+KM233> md.b 40000010
+40000010: 11 22 33 44 55 66 77 88 ff ff ff ff ff ff ff ff    ."3DUfw.........
+40000020: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
+40000030: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
+40000040: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
+}}}

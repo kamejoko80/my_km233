@@ -1,0 +1,653 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!-- saved from url=(0069)http://labs.isee.biz/index.php/How_to_setup_Marvell_88w8686_SDIO_wifi -->
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en" dir="ltr" style="height: 724px; margin-top: 34px !important;" toolbar_fixed="1"><script type="text/javascript" async="" src="./How to setup Marvell 88w8686 SDIO wifi - IGEP Community Wiki_files/ga.js"></script><script>(function docInject_start() {
+        var toolbarHeight = 35,
+			windowHeightMinusToolbar = document.documentElement.clientHeight - toolbarHeight,
+			measurer;
+
+        window.addEventListener('load', function () {
+            window.toolbarLoad = true;
+
+            // measurer is used to calculate the height of the page's contents. The height is used to detect scrolling:
+            measurer = document.createElement('div');
+            measurer.id = "toolbar_measurer";
+            measurer.className = "SkipThisFixedPosition";
+            measurer.style.position = 'fixed';
+            measurer.style.bottom = '0';
+            document.body.appendChild(measurer);
+
+
+
+        }, false);
+        window.addEventListener('resize', function () {
+            // The HTML element's height should be the window height minus the toolbars' height:
+            document.documentElement.style.pixelHeight = getHeight();
+        }, false);
+
+        function getHeight() {
+
+            if (measurer) {
+                measurer.style.display = "block";
+                return Math.max(measurer.getClientRects()[0].bottom, 0);
+            }
+
+            return windowHeightMinusToolbar;
+        }
+
+
+
+
+        // If the HTML's height is queried by the page's scripts, return it without the toolbars' height
+
+
+
+        document.documentElement.__defineGetter__('clientHeight', function () {
+            return getHeight();
+        });
+        window.__defineGetter__('innerHeight', function () {
+            return getHeight();
+        });
+
+
+        // When client rects are requested by the page's scripts, they should be modified to reflect the toolbar(s):
+        var gc = HTMLElement.prototype.getClientRects;
+        HTMLElement.prototype.getClientRects = function () {
+            var res = gc.apply(this, arguments);
+            if (res && res.length)
+                res = res[0];
+            else
+                return null;
+
+
+            return [{
+                top: res.top - toolbarHeight,
+                left: res.left,
+                bottom: res.bottom - toolbarHeight,
+                right: res.right,
+                height: res.height,
+                width: res.width
+            }]
+        };
+        var gbc = HTMLElement.prototype.getBoundingClientRect;
+        HTMLElement.prototype.getBoundingClientRect = function () {
+            var res = gbc.apply(this, arguments);
+            res.topVal = res.top - toolbarHeight;
+            res.bottomVal = res.bottom - toolbarHeight;
+            res.__defineGetter__('top', function () {
+                return this.topVal;
+            });
+            res.__defineGetter__('bottom', function () {
+                return this.bottomVal;
+            });
+            return res;
+        };
+
+        var wrappedMouseMoveHandlers = [];
+
+        // Mouse move events are wrapped, so the pageY takes into account the toolbars' height (for mouseenter/mouseleave events, for example):
+        function wrapMouseMove(owner) {
+            var origAddEvent = owner.addEventListener,
+				origRemoveEvent = owner.removeEventListener;
+
+            owner.addEventListener = function (eventName, handler, useCapture) {
+                if (eventName == 'mousemove') {
+                    var wrapper = function (e) {
+                        e.stopPropagation();
+
+                        var ee = document.createEvent('MouseEvents');
+                        ee.initMouseEvent(e.type, e.cancelBubble, e.cancelable, e.view, e.detail, e.screenX, e.screenY, e.clientX, e.clientY - toolbarHeight, e.ctrlKey, e.altKey, e.shiftKey, e.metaKey, e.button, e.relatedTarget);
+                        ee.__defineGetter__("target", function () { return e.target });
+                        ee.__defineGetter__("srcElement", function () { return e.srcElement; });
+                        ee.__defineGetter__("toElement", function () { return e.toElement });
+                        handler.call(e.target, ee);
+                    };
+
+                    wrappedMouseMoveHandlers.push({ orig: handler, wrapped: wrapper });
+                    return origAddEvent.call(this, eventName, wrapper, useCapture);
+                } else origAddEvent.apply(this, arguments);
+            }
+
+            owner.removeEventListner = function (eventName, listener, useCapture) {
+                if (eventName === "mousemove") {
+                    for (var i = 0, count = wrappedMouseMoveHandlers.length; i < count; i++) {
+                        var handlerPair = wrappedMouseMoveHandlers[i];
+                        if (handlerPair.orig === listener) {
+                            wrappedMouseMoveHandlers.splice(i, 1);
+                            return origRemoveEvent.call(this, eventName, handlerPair.wrapped, useCapture);
+                        }
+                    }
+
+                    return origRemoveEvent.apply(this, arguments);
+                } else origRemoveEvent.apply(this, arguments);
+            }
+        }
+
+        if (window.location.href.indexOf("docs.google.com") === -1) {
+            wrapMouseMove(Node.prototype);
+            wrapMouseMove(window.constructor.prototype);
+        }
+    })()</script><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		
+		<meta http-equiv="Content-Style-Type" content="text/css">
+		<meta name="generator" content="MediaWiki 1.15.2">
+		<meta name="keywords" content="How to setup Marvell 88w8686 SDIO wifi,How to setup Marvell bluetooth,Using IGEP WLAN to communicate">
+		<link rel="shortcut icon" href="http://labs.isee.biz/favicon.ico">
+		<link rel="search" type="application/opensearchdescription+xml" href="http://labs.isee.biz/opensearch_desc.php" title="IGEP Community Wiki (en)">
+		<link rel="alternate" type="application/rss+xml" title="IGEP Community Wiki RSS Feed" href="http://labs.isee.biz/index.php?title=Special:RecentChanges&feed=rss">
+		<link rel="alternate" type="application/atom+xml" title="IGEP Community Wiki Atom Feed" href="http://labs.isee.biz/index.php?title=Special:RecentChanges&feed=atom">
+		<title>How to setup Marvell 88w8686 SDIO wifi - IGEP Community Wiki</title>
+		<link rel="stylesheet" href="./How to setup Marvell 88w8686 SDIO wifi - IGEP Community Wiki_files/shared.css" type="text/css" media="screen">
+		<link rel="stylesheet" href="./How to setup Marvell 88w8686 SDIO wifi - IGEP Community Wiki_files/commonPrint.css" type="text/css" media="print">
+		<link rel="stylesheet" href="./How to setup Marvell 88w8686 SDIO wifi - IGEP Community Wiki_files/main.css" type="text/css" media="screen">
+		<link rel="stylesheet" href="./How to setup Marvell 88w8686 SDIO wifi - IGEP Community Wiki_files/index.php" type="text/css">
+		<link rel="stylesheet" href="./How to setup Marvell 88w8686 SDIO wifi - IGEP Community Wiki_files/index(1).php" type="text/css" media="print">
+		<link rel="stylesheet" href="./How to setup Marvell 88w8686 SDIO wifi - IGEP Community Wiki_files/index(2).php" type="text/css">
+		<link rel="stylesheet" href="./How to setup Marvell 88w8686 SDIO wifi - IGEP Community Wiki_files/index(3).php" type="text/css">
+		<!--[if lt IE 7]><script type="text/javascript" src="/skins/common/IEFixes.js?207"></script>
+		<meta http-equiv="imagetoolbar" content="no" /><![endif]-->
+
+		<script type="text/javascript">/*<![CDATA[*/
+		var skin = "cavendish";
+		var stylepath = "/skins";
+		var wgArticlePath = "/index.php/$1";
+		var wgScriptPath = "";
+		var wgScript = "/index.php";
+		var wgVariantArticlePath = false;
+		var wgActionPaths = {};
+		var wgServer = "http://labs.isee.biz";
+		var wgCanonicalNamespace = "";
+		var wgCanonicalSpecialPageName = false;
+		var wgNamespaceNumber = 0;
+		var wgPageName = "How_to_setup_Marvell_88w8686_SDIO_wifi";
+		var wgTitle = "How to setup Marvell 88w8686 SDIO wifi";
+		var wgAction = "view";
+		var wgArticleId = "54";
+		var wgIsArticle = true;
+		var wgUserName = null;
+		var wgUserGroups = null;
+		var wgUserLanguage = "en";
+		var wgContentLanguage = "en";
+		var wgBreakFrames = false;
+		var wgCurRevisionId = 5485;
+		var wgVersion = "1.15.2";
+		var wgEnableAPI = true;
+		var wgEnableWriteAPI = true;
+		var wgSeparatorTransformTable = ["", ""];
+		var wgDigitTransformTable = ["", ""];
+		var wgRestrictionEdit = [];
+		var wgRestrictionMove = [];
+		/*]]>*/</script>
+
+		<script type="text/javascript" src="./How to setup Marvell 88w8686 SDIO wifi - IGEP Community Wiki_files/wikibits.js"><!-- wikibits js --></script><style type="text/css">@import "/skins/cavendish/KHTMLFixes.css";</style>
+		<!-- Head Scripts -->
+		<script type="text/javascript" src="./How to setup Marvell 88w8686 SDIO wifi - IGEP Community Wiki_files/ajax.js"></script>
+		<script type="text/javascript" src="./How to setup Marvell 88w8686 SDIO wifi - IGEP Community Wiki_files/index(4).php"><!-- site js --></script>
+	<script id="__isTpiViewExists"></script><script src="chrome-extension://lifbcibllhkdhoafpjfnlhfpfgnpldfl/document_iterator.js"></script><script src="chrome-extension://lifbcibllhkdhoafpjfnlhfpfgnpldfl/find_proxy.js"></script><script src="chrome-extension://lifbcibllhkdhoafpjfnlhfpfgnpldfl/get_html_text.js"></script><script src="chrome-extension://lifbcibllhkdhoafpjfnlhfpfgnpldfl/global_constants.js"></script><script src="chrome-extension://lifbcibllhkdhoafpjfnlhfpfgnpldfl/name_injection_builder.js"></script><script src="chrome-extension://lifbcibllhkdhoafpjfnlhfpfgnpldfl/number_injection_builder.js"></script><script src="chrome-extension://lifbcibllhkdhoafpjfnlhfpfgnpldfl/menu_injection_builder.js"></script><script src="chrome-extension://lifbcibllhkdhoafpjfnlhfpfgnpldfl/string_finder.js"></script><script src="chrome-extension://lifbcibllhkdhoafpjfnlhfpfgnpldfl/change_sink.js"></script><meta name="document_iterator.js"><meta name="find_proxy.js"><meta name="get_html_text.js"><meta name="global_constants.js"><meta name="name_injection_builder.js"><meta name="number_injection_builder.js"><meta name="menu_injection_builder.js"><meta name="string_finder.js"><meta name="change_sink.js"><style>@media print { body { width: auto !important; } }</style><link rel="stylesheet" type="text/css" href="chrome-extension://ejpbbhjlbipncjklfjjaedaieimbmdda/css/about.css"></head>
+
+<body class="mediawiki ltr ns-0 ns-subject page-How_to_setup_Marvell_88w8686_SDIO_wifi skin-cavendish backgroundPositionTuned">
+
+<div id="internal"></div> <!-- cavendish-mod -->
+<div id="container"> <!-- cavendish-mod / default: globalWrapper -->
+
+    <!-- <div id="mozilla-org"><a href="/wiki/Skin:Cavendish">Mozilla Skin</a></div> -->
+    
+	<div id="header" class="noprint">
+		<a name="top" id="contentTop"></a>
+
+		<h1><a style="background: transparent url(http://labs.isee.biz/images/igep_community_logo.png) no-repeat scroll 5px -5px;);" href="http://labs.isee.biz/index.php/Main_Page" title="Visit the main page [z]" accesskey="z">&nbsp;</a></h1>
+
+
+		<ul> <!-- Start of content action buttons -->
+            
+	         <li id="ca-nstab-main" class="selected"><a href="./How to setup Marvell 88w8686 SDIO wifi - IGEP Community Wiki_files/How to setup Marvell 88w8686 SDIO wifi - IGEP Community Wiki.htm" title="View the content page [c]" accesskey="c">Page</a></li>
+	         <li id="ca-talk" class="new"><a href="http://labs.isee.biz/index.php?title=Talk:How_to_setup_Marvell_88w8686_SDIO_wifi&action=edit&redlink=1" title="Discussion about the content page [t]" accesskey="t">Discussion</a></li>
+	         <li id="ca-viewsource"><a href="http://labs.isee.biz/index.php?title=How_to_setup_Marvell_88w8686_SDIO_wifi&action=edit" title="This page is protected.
+You can view its source [e]" accesskey="e">View source</a></li>
+	         <li id="ca-history"><a href="http://labs.isee.biz/index.php?title=How_to_setup_Marvell_88w8686_SDIO_wifi&action=history" title="Past revisions of this page [h]" accesskey="h">History</a></li>		</ul>
+
+		<form action="http://labs.isee.biz/index.php/Special:Search" id="searchform">
+			<div>
+			<label for="searchInput">Search</label>
+			<input id="searchInput" name="search" type="text" title="Search IGEP Community Wiki [alt-f]" accesskey="f" value="">
+			<input type="submit" name="go" class="searchButton" id="searchGoButton" value="Go" title="Go to a page with this exact name if exists">
+			<input type="submit" name="fulltext" class="searchButton" id="mw-searchButton" value="Search" title="Search the pages for this text">
+			</div>
+		</form>
+
+	</div> <!-- End header div -->
+
+	<div id="mBody">
+
+	    <!-- Dunno if this is important...? Who cares about IE5 anyways? C'mon, we got Firefox!
+
+	    <script type="text/javascript"> if (window.isMSIE55) fixalpha(); </script> -->
+
+	    <!-- NAVIGATION -->
+		<div id="side" class="noprint"> <!-- cavendish-mod / monobook: column-one -->
+			<ul id="nav">
+                <li><span>IGEP Community Wiki</span>
+        <ul>
+        	    <li id="n-mainpage-description"><a href="http://labs.isee.biz/index.php/Main_Page">Main Page</a></li>
+        	    <li id="n-IGEP-Technology"><a href="http://labs.isee.biz/index.php/IGEP_Technology">IGEP Technology</a></li>
+        	    <li id="n-Welcome-aboard"><a href="http://labs.isee.biz/index.php/IGEP_Community_Wiki">Welcome aboard</a></li>
+            </ul>
+    </li>
+<li><span>Navigation</span>
+        <ul>
+        	    <li id="n-Categories"><a href="http://labs.isee.biz/index.php/Categories">Categories</a></li>
+        	    <li id="n-Sitemap"><a href="http://labs.isee.biz/index.php/Site_Map">Sitemap</a></li>
+        	    <li id="n-Resources"><a href="http://labs.isee.biz/index.php/Resources">Resources</a></li>
+        	    <li id="n-Glossary"><a href="http://labs.isee.biz/index.php/IGEP_Technology_Basic_Glossary">Glossary</a></li>
+        	    <li id="n-FAQ"><a href="http://labs.isee.biz/index.php/Frequently_Asked_Questions_and_Their_Answers">FAQ</a></li>
+            </ul>
+    </li>
+<li><span>IGEP Technology Resources</span>
+        <ul>
+        	    <li id="n-Forum"><a href="http://forum.isee.biz/">Forum</a></li>
+        	    <li id="n-IRC-Chat"><a href="http://webchat.freenode.net/?channels=igep">IRC Chat</a></li>
+        	    <li id="n-GIT-Repositories"><a href="http://git.isee.biz/">GIT Repositories</a></li>
+        	    <li id="n-ISEE-Official-Site"><a href="http://www.isee.biz/">ISEE Official Site</a></li>
+            </ul>
+    </li>
+<li><span>Special pages</span>
+        <ul>
+        	    <li id="n-recentchanges"><a href="http://labs.isee.biz/index.php/Special:RecentChanges" title="The list of recent changes in the wiki [r]" accesskey="r">Recent changes</a></li>
+        	    <li id="n-All-categories"><a href="http://labs.isee.biz/index.php/Special:Categories">All categories</a></li>
+        	    <li id="n-Wiki-portal"><a href="http://labs.isee.biz/index.php/Category:IGEP_Community">Wiki portal</a></li>
+            </ul>
+    </li>
+<li><span>Toolbox</span>
+    <ul>
+                    <li id="t-whatlinkshere"><a href="http://labs.isee.biz/index.php/Special:WhatLinksHere/How_to_setup_Marvell_88w8686_SDIO_wifi" title="List of all wiki pages that link here [j]" accesskey="j">What links here</a></li>
+
+        		    <li id="t-recentchangeslinked"><a href="http://labs.isee.biz/index.php/Special:RecentChangesLinked/How_to_setup_Marvell_88w8686_SDIO_wifi" title="Recent changes in pages linked from this page [k]" accesskey="k">Related changes</a></li>
+        				<li id="t-specialpages"><a href="http://labs.isee.biz/index.php/Special:SpecialPages" title="List of all special pages [q]" accesskey="q">Special pages</a></li>
+                    <li id="t-print"><a href="http://labs.isee.biz/index.php?title=How_to_setup_Marvell_88w8686_SDIO_wifi&printable=yes" rel="alternate" title="Printable version of this page [p]" accesskey="p">Printable version</a></li>            <li id="t-permalink"><a href="http://labs.isee.biz/index.php?title=How_to_setup_Marvell_88w8686_SDIO_wifi&oldid=5485" title="Permanent link to this revision of the page">Permanent link</a></li>
+        	</ul>
+</li>
+				<li><span>Personal tools</span>
+				    <ul>
+			                                    <li id="pt-login"><a href="http://labs.isee.biz/index.php?title=Special:UserLogin&returnto=How_to_setup_Marvell_88w8686_SDIO_wifi">Log in</a></li>
+	                    				    </ul>
+				</li>
+			</ul>
+		</div><!-- end of SIDE div -->
+
+        <!-- MAIN CONTENT -->
+	    <div id="mainContent"> <!-- cavendish-mod / monobook: column-content -->
+            <!-- <a name="top" id="top"></a> -->
+            <!-- sitenotice was here -->
+            <h1>How to setup Marvell 88w8686 SDIO wifi</h1>
+            <h3 id="siteSub">From IGEP Community Wiki</h3>
+            <div id="contentSub"></div>
+
+                                    <div id="jump-to-nav">Jump to: <a href="http://labs.isee.biz/index.php/How_to_setup_Marvell_88w8686_SDIO_wifi#column-one">navigation</a>, <a href="http://labs.isee.biz/index.php/How_to_setup_Marvell_88w8686_SDIO_wifi#searchInput">search</a></div>            <!-- start content -->
+            <table id="toc" class="toc" summary="Contents"><tbody><tr><td><div id="toctitle"><h2>Contents</h2> <span class="toctoggle">[<a id="togglelink" class="internal" href="javascript:toggleToc()">hide</a>]</span></div>
+<ul>
+<li class="toclevel-1"><a href="http://labs.isee.biz/index.php/How_to_setup_Marvell_88w8686_SDIO_wifi#How_to_setup_Marvell_88w8686_SDIO_wifi"><span class="tocnumber">1</span> <span class="toctext">How to setup Marvell 88w8686 SDIO wifi</span></a>
+<ul>
+<li class="toclevel-2"><a href="http://labs.isee.biz/index.php/How_to_setup_Marvell_88w8686_SDIO_wifi#Overview_of_How-To"><span class="tocnumber">1.1</span> <span class="toctext">Overview of How-To</span></a></li>
+<li class="toclevel-2"><a href="http://labs.isee.biz/index.php/How_to_setup_Marvell_88w8686_SDIO_wifi#Feedback_and_Contributing"><span class="tocnumber">1.2</span> <span class="toctext">Feedback and Contributing</span></a></li>
+<li class="toclevel-2"><a href="http://labs.isee.biz/index.php/How_to_setup_Marvell_88w8686_SDIO_wifi#Setup_basics"><span class="tocnumber">1.3</span> <span class="toctext">Setup basics</span></a></li>
+</ul>
+</li>
+<li class="toclevel-1"><a href="http://labs.isee.biz/index.php/How_to_setup_Marvell_88w8686_SDIO_wifi#How_to_debug_the_libertas_driver"><span class="tocnumber">2</span> <span class="toctext">How to debug the libertas driver</span></a></li>
+<li class="toclevel-1"><a href="http://labs.isee.biz/index.php/How_to_setup_Marvell_88w8686_SDIO_wifi#How_to_get_WIFI_active_upon_system_start_.28using_a_WPA2_access-point.29"><span class="tocnumber">3</span> <span class="toctext">How to get WIFI active upon system start (using a WPA2 access-point)</span></a></li>
+<li class="toclevel-1"><a href="http://labs.isee.biz/index.php/How_to_setup_Marvell_88w8686_SDIO_wifi#Notes"><span class="tocnumber">4</span> <span class="toctext">Notes</span></a></li>
+<li class="toclevel-1"><a href="http://labs.isee.biz/index.php/How_to_setup_Marvell_88w8686_SDIO_wifi#See_also"><span class="tocnumber">5</span> <span class="toctext">See also</span></a></li>
+</ul>
+</td></tr></tbody></table><script type="text/javascript"> if (window.showTocToggle) { var tocShowText = "show"; var tocHideText = "hide"; showTocToggle(); } </script>
+<a name="How_to_setup_Marvell_88w8686_SDIO_wifi" id="How_to_setup_Marvell_88w8686_SDIO_wifi"></a><h2> <span class="mw-headline"> How to setup Marvell 88w8686 SDIO wifi  </span></h2>
+<a name="Overview_of_How-To" id="Overview_of_How-To"></a><h3> <span class="mw-headline"> Overview of How-To  </span></h3>
+<p>This How-To is meant to be a starting point for people to learn setup the wifi on IGEP v2 devices as quickly and easily as possible. 
+</p>
+<a name="Feedback_and_Contributing" id="Feedback_and_Contributing"></a><h3> <span class="mw-headline"> Feedback and Contributing  </span></h3>
+<p>At any point, if you see a mistake you can contribute to this How-To. 
+</p>
+<a name="Setup_basics" id="Setup_basics"></a><h3> <span class="mw-headline"> Setup basics  </span></h3>
+<ul><li>libertas: Marvell Libertas 8385/8686/8688 SDIO 802.11b/g card 
+</li><li>firmware: 9.70.3p24 ( download from <a href="http://www.marvell.com/support/downloads/search.do" class="external free" title="http://www.marvell.com/support/downloads/search.do" rel="nofollow">http://www.marvell.com/support/downloads/search.do</a>&nbsp;; choose platform Linux 2.6 and download SD-8686-LINUX26-SYSKT-9.70.3.p24-26409.P45-GPL )
+</li></ul>
+<p>This zip archive contains other tarballs&nbsp;; one of them is named SD-8686-FEDORA26FC6-SYSKT-GPL-9.70.3.p24-26409.P45.tar and contains a FwImage directory.  Inside are the two firmware images.  You will need to rename helper_sd.bin as sd8686_helper.bin and put both firmware in the lib/firmware (or, as you wish, in lib/firmware/libertas) directory of your target root filesystem.
+</p><p>SDIO card should be showed after the image is downloaded to the board. 
+</p>
+<pre>mmc1: new SDIO card at address 0001
+</pre> 
+<p>To make the SDIO WIFI module work load the libertas_sdio module (assuming you built it as module)
+</p>
+<pre># modprobe libertas_sdio
+
+libertas_sdio: Libertas SDIO driver
+libertas_sdio: Copyright Pierre Ossman
+libertas_sdio mmc1:0001:1: firmware: requesting sd8686_helper.bin
+libertas_sdio mmc1:0001:1: firmware: requesting sd8686.bin
+libertas: 00:13:e0:c3:0c:3c, fw 9.70.3p24, cap 0x00000303
+libertas: unidentified region code; using the default (USA)
+libertas: PREP_CMD: command 0x00a3 failed: 2
+libertas: PREP_CMD: command 0x00a3 failed: 2
+libertas: eth1: Marvell WLAN 802.11 adapter
+</pre> 
+<p>NOTE: I did not see any of the above output when I modprobe'd libertas_sdio on a 2.6.35-rc6 kernel.
+</p><p>Now you can connect this wifi module to an AP. First of all, you'll check if your devices is detected. 
+</p>
+<pre># iwconfig
+
+eth1      IEEE 802.11b/g  ESSID:""  
+          Mode:Managed  Frequency:2.412 GHz  Access Point: Not-Associated   
+          Bit Rate:0 kb/s   Tx-Power=18 dBm   
+          Retry short limit:8   RTS thr=2347 B   Fragment thr=2346 B   
+          Encryption key:off
+          Power Management:off
+          Link Quality:0  Signal level:0  Noise level:0
+          Rx invalid nwid:0  Rx invalid crypt:0  Rx invalid frag:0
+          Tx excessive retries:0  Invalid misc:0   Missed beacon:0
+</pre> 
+<p>Next, you will set up the interface 
+</p>
+<pre># ifconfig eth1 up
+
+eth1      Link encap:Ethernet  HWaddr 00:13:E0:C3:0C:3C  
+          UP BROADCAST MULTICAST  MTU:1500  Metric:1
+          RX packets:0 errors:0 dropped:0 overruns:0 frame:0
+          TX packets:0 errors:0 dropped:0 overruns:0 carrier:0
+          collisions:0 txqueuelen:1000 
+          RX bytes:0 (0.0 B)  TX bytes:0 (0.0 B)
+</pre> 
+<p>and you can scan for an AP 
+</p>
+<pre># iwlist eth1 scan
+
+Cell 04 - Address: 00:18:84:81:46:E2
+                    ESSID:"MyPlace"
+                    Mode:Managed
+                    Frequency:2.427 GHz (Channel 4)
+                    Quality=100/100  Signal level=-39 dBm  Noise level=-96 dBm
+                    Encryption key:off
+                    Bit Rates:1 Mb/s; 2 Mb/s; 5.5 Mb/s; 6 Mb/s; 9 Mb/s
+                              11 Mb/s; 12 Mb/s; 18 Mb/s; 24 Mb/s; 36 Mb/s
+                              48 Mb/s; 54 Mb/s
+</pre> 
+<p>Now, is time to associate to your AP 
+</p>
+<pre># iwconfig eth1 txpower auto essid MyPlace channel 4
+
+eth1      IEEE 802.11b/g  ESSID:"MyPlace"  
+          Mode:Managed  Frequency:2.427 GHz  Access Point: 00:18:84:81:46:E2   
+          Bit Rate:0 kb/s   Tx-Power=13 dBm   
+          Retry short limit:8   RTS thr=2347 B   Fragment thr=2346 B   
+          Encryption key:off
+          Power Management:off
+          Link Quality=97/100  Signal level=-43 dBm  Noise level=-94 dBm
+          Rx invalid nwid:0  Rx invalid crypt:3109  Rx invalid frag:0
+          Tx excessive retries:13  Invalid misc:3315   Missed beacon:0
+</pre> 
+<p>and get and ip address 
+</p>
+<pre># udhcpc -i eth1
+udhcpc (v1.9.1) started
+Sending discover...
+Sending select for 192.168.10.216...
+Lease of 192.168.10.216 obtained, lease time 43200
+adding dns 192.168.10.1
+</pre> 
+<p>Last, you can test the network interface. 
+</p>
+<pre># ping -c 1 192.168.10.1
+
+PING 192.168.10.1 (192.168.10.1): 56 data bytes
+64 bytes from 192.168.10.1: seq=0 ttl=64 time=16.327 ms
+
+--- 192.168.10.1 ping statistics ---
+1 packets transmitted, 1 packets received, 0% packet loss
+round-trip min/avg/max = 16.327/16.327/16.327 ms
+</pre>
+<a name="How_to_debug_the_libertas_driver" id="How_to_debug_the_libertas_driver"></a><h2> <span class="mw-headline"> How to debug the libertas driver  </span></h2>
+<p>From: <a href="http://wiki.laptop.org/go/Libertas_Debug" class="external free" title="http://wiki.laptop.org/go/Libertas_Debug" rel="nofollow">http://wiki.laptop.org/go/Libertas_Debug</a> 
+</p><p>To enable debug on the wireless (libertas) driver you may write to the libertas_debug '/sys' file: 
+</p>
+<pre>echo <i>LBS_DEBUG_FLAGS</i> &gt; /sys/module/libertas/parameters/libertas_debug
+</pre>
+<p>You can calculate the value for <i>LBS_DEBUG_FLAGS</i> using the table bellow (just add up the values for the flags you want to activate). 
+</p>
+<table cellspacing="2" cellpadding="2" border="1">
+
+<tbody><tr>
+<th> Debug Flag Name
+</th><th> Flag Hex value
+</th><th> Description(*)
+</th></tr>
+<tr>
+<td> LBS_DEB_ENTER
+</td><td> 0x00000001
+</td><td> function entrance
+</td></tr>
+<tr>
+<td> LBS_DEB_LEAVE
+</td><td> 0x00000002
+</td><td> function exit
+</td></tr>
+<tr>
+<td> LBS_DEB_MAIN
+</td><td> 0x00000004
+</td><td> main libertas library code
+</td></tr>
+<tr>
+<td> LBS_DEB_NET
+</td><td> 0x00000008
+</td><td> interaction with network subsystem
+</td></tr>
+<tr>
+<td> LBS_DEB_MESH
+</td><td> 0x00000010
+</td><td> wireless mesh network
+</td></tr>
+<tr>
+<td> LBS_DEB_WEXT
+</td><td> 0x00000020
+</td><td> interaction with wireless extensions
+</td></tr>
+<tr>
+<td> LBS_DEB_IOCTL
+</td><td> 0x00000040
+</td><td> misc IOCTLs
+</td></tr>
+<tr>
+<td> LBS_DEB_SCAN
+</td><td> 0x00000080
+</td><td> scanning for APs
+</td></tr>
+<tr>
+<td> LBS_DEB_ASSOC
+</td><td> 0x00000100
+</td><td> associating ton an AP
+</td></tr>
+<tr>
+<td> LBS_DEB_JOIN
+</td><td> 0x00000200
+</td><td> joining an IBSS?
+</td></tr>
+<tr>
+<td> LBS_DEB_11D
+</td><td> 0x00000400
+</td><td> 802.11d country settings
+</td></tr>
+<tr>
+<td> LBS_DEB_DEBUGFS
+</td><td> 0x00000800
+</td><td> interaction with the debugfs subsystem
+</td></tr>
+<tr>
+<td> LBS_DEB_ETHTOOL
+</td><td> 0x00001000
+</td><td> interaction with ethtool subsystem
+</td></tr>
+<tr>
+<td> LBS_DEB_HOST
+</td><td> 0x00002000
+</td><td> communication between host and wlan chip
+</td></tr>
+<tr>
+<td> LBS_DEB_CMD
+</td><td> 0x00004000
+</td><td> command and response processing
+</td></tr>
+<tr>
+<td> LBS_DEB_RX
+</td><td> 0x00008000
+</td><td> packet reception
+</td></tr>
+<tr>
+<td> LBS_DEB_TX
+</td><td> 0x00010000
+</td><td> packet transmission
+</td></tr>
+<tr>
+<td> LBS_DEB_USB
+</td><td> 0x00020000
+</td><td> interaction with USB subsystem
+</td></tr>
+<tr>
+<td> LBS_DEB_CS
+</td><td> 0x00040000
+</td><td> interaction with card services subsystem
+</td></tr>
+<tr>
+<td> LBS_DEB_FW
+</td><td> 0x00080000
+</td><td> firmware downloading
+</td></tr>
+<tr>
+<td> LBS_DEB_THREAD
+</td><td> 0x00100000
+</td><td> main libertas worker thread
+</td></tr>
+<tr>
+<td> LBS_DEB_HEX
+</td><td> 0x00200000
+</td><td> turn on detailed hex dumps
+</td></tr>
+<tr>
+<td> LBS_DEB_SDIO
+</td><td> 0x00400000
+</td><td> interaction with SDIO subsystem
+</td></tr>
+<tr>
+<td colspan="3"> (*) Description taken from <a href="http://git.infradead.org/?p=users/schurig/libertas-tools.git;a=blob_plain;f=lbsdebug/lbsdebug.c;hb=master" class="external text" title="http://git.infradead.org/?p=users/schurig/libertas-tools.git;a=blob_plain;f=lbsdebug/lbsdebug.c;hb=master" rel="nofollow">lbsdebug.c</a> (by Holger Schurig)
+</td></tr></tbody></table>
+<p><br> Example:<br> To activate scanning (LBS_DEB_SCAN), associating (LBS_DEB_ASSOC), command (LBS_DEB_CMD) and host (LBS_DEB_HOST): 
+</p>
+<pre>echo 0x6180 &gt; /sys/module/libertas/parameters/libertas_debug
+</pre>
+<p>The output will be post to the kernel ring buffer. You can display it with the dmesg command: 
+</p>
+<pre>dmesg
+</pre>
+<p>You can also use the lbsdebug tool, from Holger Shurig, git tree available <a href="http://git.infradead.org/?p=users/schurig/libertas-tools.git;a=blob_plain;f=lbsdebug/lbsdebug.c;hb=master" class="external text" title="http://git.infradead.org/?p=users/schurig/libertas-tools.git;a=blob_plain;f=lbsdebug/lbsdebug.c;hb=master" rel="nofollow">here</a>. 
+</p>
+<a name="How_to_get_WIFI_active_upon_system_start_.28using_a_WPA2_access-point.29" id="How_to_get_WIFI_active_upon_system_start_.28using_a_WPA2_access-point.29"></a><h2> <span class="mw-headline"> How to get WIFI active upon system start (using a WPA2 access-point)  </span></h2>
+<p>Tested configuration:
+</p>
+<ul><li>IGEP v2 board 
+</li><li>Ubuntu Linux provided on the SD-card 
+</li><li>WIFI access point with WPA-PSK encryption method.
+</li></ul>
+<p><br>
+Basically you have to create/modify two files:
+</p>
+<ol><li>create file /etc/wpa-supplicant/wpa-supplicant.conf
+</li><li>modify /etc/network/interfaces
+</li></ol>
+<p>Here are the details.
+</p><p><br>
+To create /etc/wpa-supplicant/wpa-supplicant.conf do: 
+</p>
+<pre>wpa_passphrase "your SSID" yourPassword &gt; /etc/wpa-supplicant/wpa-supplicant.conf</pre> 
+<p>Now add the following lines at the end of this file: 
+</p>
+<pre>proto=WPA2
+key_mgmt=WPA-PSK
+pairwise=CCMP</pre> 
+<p>Then modify /etc/network/interfaces 
+</p><p>Change the line 
+</p>
+<pre>auto eth0 
+into 
+#auto eth0</pre>
+<p>Add the next lines (replace wlan0 by your wifi interface): 
+</p>
+<pre>auto wlan0
+iface wlan0 inet dhcp
+wpa-conf /etc/wpa-supplicant/wpa-supplicant.conf</pre>
+<p>To check if your /etc/wpa-supplicant/wpa-supplicant.conf file is correct you can type 
+</p>
+<pre>wpa_supplicant -ieth2 -c/etc/wpa-supplicant/wpa-supplicant.conf -d</pre>
+<a name="Notes" id="Notes"></a><h2> <span class="mw-headline"> Notes  </span></h2>
+<p>For kernel 2.6.35.8 and above you will see wlan0 instead of eth1.
+Wifi for kernel 2.6.35.7 seems to be broken, please use 2.6.35.8 or above.
+</p>
+<a name="See_also" id="See_also"></a><h1> <span class="mw-headline"> See also </span></h1>
+<ul><li><a href="http://labs.isee.biz/index.php/How_to_setup_Marvell_bluetooth" title="How to setup Marvell bluetooth">How to setup Marvell bluetooth</a>
+</li><li><a href="http://labs.isee.biz/index.php/Using_IGEP_WLAN_to_communicate" title="Using IGEP WLAN to communicate">Using IGEP WLAN to communicate</a>
+</li></ul>
+
+<!-- 
+NewPP limit report
+Preprocessor node count: 48/1000000
+Post-expand include size: 0/2097152 bytes
+Template argument size: 0/2097152 bytes
+Expensive parser function count: 0/100
+-->
+
+<!-- Saved in parser cache with key labs:pcache:idhash:54-0!1!0!!en!2!edit=0 and timestamp 20121115182513 -->
+<div class="printfooter">
+Retrieved from "<a href="./How to setup Marvell 88w8686 SDIO wifi - IGEP Community Wiki_files/How to setup Marvell 88w8686 SDIO wifi - IGEP Community Wiki.htm">http://labs.isee.biz/index.php/How_to_setup_Marvell_88w8686_SDIO_wifi</a>"</div>
+            <div id="catlinks" class="catlinks"><div id="mw-normal-catlinks"><a href="http://labs.isee.biz/index.php/Special:Categories" title="Special:Categories">Category</a>: <span dir="ltr"><a href="http://labs.isee.biz/index.php/Category:Wifi" title="Category:Wifi">Wifi</a></span></div></div>            <!-- end content -->
+                        <div class="visualClear"></div>
+	    </div> <!-- End mainContent div -->
+
+	</div> <!-- End mBody div -->
+
+	<div class="visualClear"></div>
+
+	<!-- FOOTER -->
+    <div id="footer">
+                    <div id="f-poweredbyico"><a href="http://www.mediawiki.org/"><img src="./How to setup Marvell 88w8686 SDIO wifi - IGEP Community Wiki_files/poweredby_mediawiki_88x31.png" alt="Powered by MediaWiki"></a></div>
+
+        
+        
+	    <ul>
+
+	    <script type="text/javascript">
+
+            var _gaq = _gaq || [];
+            _gaq.push(['_setAccount', 'UA-31299223-1']);
+            _gaq.push(['_trackPageview']);
+
+            (function() {
+            var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+            ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+            var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+            })();
+
+            </script>
+
+
+	    		       <!--<li id="lastmod"> This page was last modified on 26 April 2012, at 11:17.</li>-->
+			
+	    		       <!--<li id="viewcount">This page has been accessed 17,265 times.</li>-->
+			
+	    	    </ul>
+
+        		    <ul id="f-list">
+            			    <li id="about"><a href="http://labs.isee.biz/index.php/IGEP_Community_Wiki:About" title="IGEP Community Wiki:About">About IGEP Community Wiki</a></li>
+            			    <li id="disclaimer"><a href="http://labs.isee.biz/index.php/IGEP_Community_Wiki:General_disclaimer" title="IGEP Community Wiki:General disclaimer">Disclaimers</a></li>
+                        <!--<li class="noprint"><a href="https://sourceforge.net/p/cavendishmw/home/">Cavendish Skin</a></li>-->
+		    </ul>
+            </div> <!-- End of footer div -->
+
+</div> <!-- End of container div -->
+
+
+		<script type="text/javascript">if (window.runOnloadHook) runOnloadHook();</script>
+<!-- Served in 0.224 secs. -->
+<div class="SkipThisFixedPosition main-iframe-wrapper" id="main-iframe-wrapper" background="chrome-extension://ejpbbhjlbipncjklfjjaedaieimbmdda/screenShot.png" style="z-index: 2147483644; top: 0px; left: 0px; margin: 0px; line-height: 0; display: none !important; width: 100%; height: 34px; position: fixed;"></div><div class="SkipThisFixedPosition top-iframe-wrapper" style="width: 100%; height: 34px; position: fixed; z-index: 2147483647; left: 0px; display: none; top: 0px !important;"><iframe class="TOOLBAR_IFRAME" id="T_0.722235188819468" frameborder="0" scrolling="no" style="width: 100%; height: 100%; min-height: 100%; line-height: 0; position: absolute; left: 0px; border-bottom-width: 1px; border-bottom-style: solid; border-bottom-color: rgba(0, 0, 0, 0.294118); margin: 0px !important; display: none; top: 0px !important;" src="./How to setup Marvell 88w8686 SDIO wifi - IGEP Community Wiki_files/container.htm"></iframe></div><div id="toolbar_measurer" class="SkipThisFixedPosition" style="position: fixed; bottom: 0px; display: block;"></div><div id="mainContainer_CTID"><div class="fixedDiv UrlGadgetsDiv" style="position: fixed; left: 0px; z-index: 2147483640; top: 34px !important;" fixed_managed="2"></div><div class="fixedDiv SkipThisFixedPosition GeneralGadgetsDiv" style="position: fixed; left: 0px; z-index: 2147483644; width: 100%; top: 34px !important;"></div></div></body><span id="skype_highlighting_settings" display="none" autoextractnumbers="1"></span><object id="skype_plugin_object" location.href="http://labs.isee.biz/index.php/How_to_setup_Marvell_88w8686_SDIO_wifi" location.hostname="labs.isee.biz" style="position: absolute; visibility: hidden; left: -100px; top: -100px;" width="0" height="0" type="application/x-vnd.skype.click2call.chrome.5.7.0"></object></html>

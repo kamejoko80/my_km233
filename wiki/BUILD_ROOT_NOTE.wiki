@@ -1,0 +1,70 @@
+= Cross-compile apps using buildroot =
+
+== A> OpenCV ==
+
+   Sau khi build các gói OpenCV libraries, ta pkg-config được tạo ra ở đường dẫn:
+
+   {{{
+      buildroot/host/usr/bin/pkg-config    
+   }}}
+
+   Để phân biệt pkg-config của buildroot và pkg-config của máy Linux, ta nên rename thành buildroot-pkg-config như sau:
+
+   {{{
+      $ buildroot/host/usr/bin
+      $ cp pkg-config buildroot-pkg-config
+      $ export PATH=$PATH:`pwd`   
+   }}}  
+
+   Để compile được OpenCV app, ta dùng command line như sau:
+
+   {{{
+      arm-none-linux-g++ `buildroot-pkg-config --cflags --libs opencv` opencv.cpp -o opencv
+   }}} 
+
+ Cách khác, tạo Makefile:
+
+  {{{
+     CC=../../host/usr/bin/arm-unknown-linux-uclibcgnueabi-gcc
+     all:
+        $(CC) -Wall -o opencv_example -L../../staging/usr/lib/ -I../../staging/usr/include/ -lopencv_highgui opencv_example.c
+     clean:
+        rm -rf opencv_example
+  }}} 
+
+  {{{
+#include <stdio.h>
+#include <time.h>
+#include <opencv/cv.h>
+#include <opencv/highgui.h>
+ 
+int main(int argc, char *argv[])
+{
+ 
+    CvCapture* capture = cvCreateCameraCapture(CV_CAP_V4L2);
+    IplImage *img;
+ 
+    if(!capture) {
+        printf("Can't get capture device\n");
+        exit(EXIT_FAILURE);
+    }
+ 
+    /* Grab some picture because the first ones is very dark */
+    while (clock() / CLOCKS_PER_SEC < 3)
+        cvGrabFrame(capture);
+ 
+    /* Get one picture and save it as test.jpg */
+    img = cvRetrieveFrame(capture, 0);
+    cvSaveImage("test.jpg", img, 0);
+ 
+  cvReleaseImage(&img );
+  cvReleaseCapture(&capture);
+ 
+  return EXIT_SUCCESS;
+}
+  }}} 
+ 
+-----------------------------------------------------
+= Reference =
+
+[http://www.armadeus.com/wiki/index.php?title=OpenCV]

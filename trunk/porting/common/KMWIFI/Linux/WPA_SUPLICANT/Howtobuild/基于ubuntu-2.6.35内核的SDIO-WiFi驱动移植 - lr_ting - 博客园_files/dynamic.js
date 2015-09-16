@@ -1,0 +1,11 @@
+_clustrmaps.layer('recent',{'points':[[39.9289,116.3883,"CN","Beijing"]],timestamp:'201211201550'});
+_clustrmaps.layer('recent',{'points':[[30.5801,114.2734,"CN","Wuhan"]],timestamp:'201211201433'});
+_clustrmaps.layer('recent',{'points':[[31.3041,120.5954,"CN","Suzhou"]],timestamp:'201211201319'});
+_clustrmaps.layer('recent',{'points':[[34.1805,117.1571,"CN","Xuzhou"]],timestamp:'201211201110'});
+_clustrmaps.layer('recent',{'points':[[31.0456,121.3997,"CN","Shanghai"]],timestamp:'201211201049'});
+_clustrmaps.layer('recent',{'points':[[23.1167,113.2500,"CN","Guangzhou"]],timestamp:'201211201010'});
+_clustrmaps.layer('recent',{'points':[[39.0728,114.8731,"CN","Shijiazhuang"]],timestamp:'201211200918'});
+_clustrmaps.layer('recent',{'points':[[31.8639,117.2808,"CN","Hefei"]],timestamp:'201211200900'});
+_clustrmaps.layer('recent',{'points':[[22.5333,114.1333,"CN","Shenzhen"]],timestamp:'201211200849'});
+_clustrmaps.layer('recent',{'points':[[10.8142,106.6438,"VN","Ho Chi Minh City"]],timestamp:'201211200741'});
+_clustrmaps.layer('recent',{'points':[[32.0617,118.7778,"CN","Nanjing"]],timestamp:'201211200653'});

@@ -1,0 +1,92 @@
+
+#------------------------------------------------------------------------
+#  DOWNLOAD AND BUILD KERNEL INFEDORA
+#------------------------------------------------------------------------
+
+See here : http://fedoraproject.org/wiki/Docs/CustomKernel
+
+$ yumdownloader --source kernel
+$ su -c 'yum-builddep kernel*.src.rpm'
+$ rpm -ihv kernel*.src.rpm
+$ rpmbuild -bp --target=$(uname -m) ~/rpmbuild/SPECS/kernel.spec
+$ cd ~/rpmbuild/BUILD/kernel-2.6.27/linux-2.6.27.*/
+$ make oldconfig
+$ make menuconfig
+
+
+$ route add default gw 192.168.3.2 eth1
+
+-------------------------------------------------------------------------
+USING STRACE COMMAND
+
+$ strace -o usbipd -d
+
+$ yum install libsysfs-devel.i586
+$ yum install libsysfs
+
+
+
+./configure --help
+
+  CC          C compiler command
+  CFLAGS      C compiler flags
+  LDFLAGS     linker flags, e.g. -L<lib dir> if you have libraries in a
+              nonstandard directory <lib dir>
+  LIBS        libraries to pass to the linker, e.g. -l<library>
+  CPPFLAGS    C/C++/Objective C preprocessor flags, e.g. -I<include dir> if
+              you have headers in a nonstandard directory <include dir>
+  CPP         C preprocessor
+  PKG_CONFIG  path to pkg-config utility
+  PACKAGE_CFLAGS
+              C compiler flags for PACKAGE, overriding pkg-config
+  PACKAGE_LIBS
+              linker flags for PACKAGE, overriding pkg-config
+
+
+  --prefix=/home/phuong/atmel/arm-2007q3/arm-none-linux-gnueabi
+  --prefix=/home/phuong/USBIP/cross-build/install-dir/usr 
+
+
+http://en.gentoo-wiki.com/wiki/Webcam
+
+
+
+---------------------------------
+Find files that contain a text string
+
+grep -lir "text to find" *
+
+The -l switch outputs only the names of files in which the text occurs (instead of each line containing the text), the -i switch ignores the case, and the -r descends into subdirectories.
+
+Find files containing search terms on Ubuntu 
+
+To find files containing keywords, linux has a powerful command called grep, which you can use to find the lines inside any file or a list of files.
+
+grep -i -n 'text to search' *
+
+List files containing text
+
+Used to recursively search a directory for files containing a string, output the names of the files and the line number. This will search all regular files in for.
+
+grep --with-filename --line-number `find -type f`
+
+Find more tips and techniques at Smart Pad
+
+
+---------------------------------
+
+diff -Naur orig new > patch.diff
+
+
+-------------------------------------------------------------
+CROSS COMPILE UNG DUNG GTK SU DUNG LTIB
+
+$ gcc hello.c -o hello `pkg-config --cflags gtk+-2.0 --libs`
+
+-------------------------------------------------------------
+CROSS COMPILE OpenCV application suing LTIB
+
+$ g++ hello.c -o hello `pkg-config --cflags opencv --libs`
+
+
+

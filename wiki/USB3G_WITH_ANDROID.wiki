@@ -1,0 +1,5 @@
+#summary One-sentence summary of this page.
+
+= Add New USB 3G Dongle Into Android Tablet =
+
+[http://im-dexter.blogspot.com/2013/03/adding-3g-dongle-support-to-your-tablet.html]

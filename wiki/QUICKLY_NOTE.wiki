@@ -1,0 +1,116 @@
+#summary One-sentence summary of this page.
+
+= Company Website =
+
+  {{{http://attend.com.tw/ : connector }}}
+
+  {{{
+    AP6210 + RK3066 Firmware  
+    http://blog.w2comp.com/2013/12/15-dec-2013-mk802-iiis-custom-firmware.html 
+  }}}
+
+  {{{
+    MK808 Android, Linux source
+    http://www.freaktab.com/showthread.php?5805-MK808B-Custom-Kernel-Possible
+  }}}
+  {{{
+    RK3066 Linux kernel
+    http://www.freaktab.com/showthread.php?4491-How-to-compile-your-own-kernel-for-rk3066-devices/page2  
+  }}}
+
+  {{{
+    AP6210 driver guide line for Android
+    http://dl.cubieboard.org/docs/EN/A20-ap6330-ap6210-android-port.pdf
+  }}}
+
+  {{{
+    English pronouns
+    http://www.merriam-webster.com/dictionary/archive 
+  }}}
+
+  {{{
+    UG007II 
+    http://ugoos.net/ug007ii 
+  }}}
+
+  {{{
+    MK802IIIS
+    http://touchscreen-apps.blogspot.com/2013/10/ug007ii-422-official-firmware-installed.html
+  }}}
+
+  {{{
+    RK3066 Clone with AP6120
+    http://www.freaktab.com/showthread.php?7194-MK802IIIS-BT-v6-S8B-MK808B-AP6210-Clone-firmware-hunt
+    http://www.android-hilfe.de/root-custom-roms-modding-fuer-rockchip-rk3066-tv-sticks/484340-rom-mk808b-finless2-1-fuer-ap6210-wifi-chip.html 
+  }}}
+ 
+  {{{
+    Unbrick PXA168
+    http://forum.chumby.com/viewtopic.php?id=9024  
+  }}}
+
+  {{{
+    Marvell docs
+    https://www.kernel.org/doc/readme/Documentation-arm-Marvell-README
+  }}}
+
+  {{{
+    AUTOSAR ARCCORE
+    http://arccore.com/hg/arc-stable/file/5dba3c46c14c 
+  }}}
+
+  {{{
+    Stelaris AUTOSAR driver
+    http://erika.tuxfamily.org/wiki/index.php?title=Stellaris_AUTOSAR_Drivers
+    http://svn.tuxfamily.org/viewvc.cgi/erika_erikae/    
+  }}}
+   
+  {{{
+    Konnex Operating-System
+    https://github.com/christoph2/K-OS--Driver-Kit 
+  }}} 
+
+  {{{
+    RISC OS OPEN
+    https://www.riscosopen.org/content/  
+  }}} 
+
+  {{{
+     Queue buffer with:
+      
+     front_idx;
+     rear_idx;
+     buffer_size;    
+
+     Current data size in queue:
+
+     cur_size = (rear_idx - front_idx + buffer_size) % buffer_size;
+  }}}
+
+  {{{
+     OpenMV project
+     http://hackaday.io/project/1313-OpenMV 
+  }}}
+
+  {{{
+      Fastboot for BeagleBone Black
+      http://www.2net.co.uk/tutorial/fastboot-beaglebone 
+  }}}
+
+  {{{
+     AM3352 SGX Disable
+     http://e2e.ti.com/support/embedded/android/f/509/t/168467.aspx   
+  }}}
+
+  {{{
+     Dump epprom value for Beagle Bone Black (board id header size = 80)
+     hexdump -x /sys/bus/i2c/devices/0-0050/eeprom -s 0 -n 80
+     0000000 55aa ee33 3341 3533 4e42 544c 4130 4135
+     0000010 3931 3331 4242 4b42 3232 3133 ffff ffff
+     0000020 ffff ffff ffff ffff ffff ffff ffff ffff
+  }}}
+  
+  {{{
+     Opensurf
+     http://www.chrisevansdev.com/computer-vision-opensurf.html
+  }}}     

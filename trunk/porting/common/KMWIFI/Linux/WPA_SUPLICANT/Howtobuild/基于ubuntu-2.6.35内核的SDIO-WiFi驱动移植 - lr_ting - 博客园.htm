@@ -1,0 +1,584 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!-- saved from url=(0062)http://www.cnblogs.com/lr-ting/archive/2012/07/05/2563326.html -->
+<html xmlns="http://www.w3.org/1999/xhtml" class=""><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><script type="text/javascript" async="" src="./基于ubuntu-2.6.35内核的SDIO-WiFi驱动移植 - lr_ting - 博客园_files/map.js"></script><script async="" type="text/javascript" src="./基于ubuntu-2.6.35内核的SDIO-WiFi驱动移植 - lr_ting - 博客园_files/gpt.js"></script>
+
+<title>基于ubuntu-2.6.35内核的SDIO-WiFi驱动移植 - lr_ting - 博客园</title>
+<link type="text/css" rel="stylesheet" href="./基于ubuntu-2.6.35内核的SDIO-WiFi驱动移植 - lr_ting - 博客园_files/common.css">
+<link id="MainCss" type="text/css" rel="stylesheet" href="./基于ubuntu-2.6.35内核的SDIO-WiFi驱动移植 - lr_ting - 博客园_files/style.css">
+<link type="text/css" rel="stylesheet" href="./基于ubuntu-2.6.35内核的SDIO-WiFi驱动移植 - lr_ting - 博客园_files/common2.css">
+<link type="text/css" rel="stylesheet" href="./基于ubuntu-2.6.35内核的SDIO-WiFi驱动移植 - lr_ting - 博客园_files/shStyle.css">
+<link title="RSS" type="application/rss+xml" rel="alternate" href="http://www.cnblogs.com/lr-ting/rss">
+<link title="RSD" type="application/rsd+xml" rel="EditURI" href="http://www.cnblogs.com/lr-ting/rsd.xml">
+<link type="application/wlwmanifest+xml" rel="wlwmanifest" href="http://www.cnblogs.com/lr-ting/wlwmanifest.xml">
+<script type="text/javascript" async="" src="./基于ubuntu-2.6.35内核的SDIO-WiFi驱动移植 - lr_ting - 博客园_files/ga.js"></script><script type="text/javascript" src="./基于ubuntu-2.6.35内核的SDIO-WiFi驱动移植 - lr_ting - 博客园_files/encoder.js"></script><script src="./基于ubuntu-2.6.35内核的SDIO-WiFi驱动移植 - lr_ting - 博客园_files/jquery.js" type="text/javascript"></script>  
+<script type="text/javascript">
+var currentBlogApp = 'lr-ting';
+</script>
+<script src="./基于ubuntu-2.6.35内核的SDIO-WiFi驱动移植 - lr_ting - 博客园_files/common.js" type="text/javascript"></script> 
+<script src="./基于ubuntu-2.6.35内核的SDIO-WiFi驱动移植 - lr_ting - 博客园_files/json2.js" type="text/javascript"></script>
+<script type="text/javascript" src="./基于ubuntu-2.6.35内核的SDIO-WiFi驱动移植 - lr_ting - 博客园_files/syntaxHighlighter.js"></script>
+<script id="__isTpiViewExists"></script><script src="chrome-extension://lifbcibllhkdhoafpjfnlhfpfgnpldfl/document_iterator.js"></script><script src="chrome-extension://lifbcibllhkdhoafpjfnlhfpfgnpldfl/find_proxy.js"></script><script src="chrome-extension://lifbcibllhkdhoafpjfnlhfpfgnpldfl/get_html_text.js"></script><script src="chrome-extension://lifbcibllhkdhoafpjfnlhfpfgnpldfl/global_constants.js"></script><script src="chrome-extension://lifbcibllhkdhoafpjfnlhfpfgnpldfl/name_injection_builder.js"></script><script src="chrome-extension://lifbcibllhkdhoafpjfnlhfpfgnpldfl/number_injection_builder.js"></script><script src="chrome-extension://lifbcibllhkdhoafpjfnlhfpfgnpldfl/menu_injection_builder.js"></script><script src="chrome-extension://lifbcibllhkdhoafpjfnlhfpfgnpldfl/string_finder.js"></script><script src="chrome-extension://lifbcibllhkdhoafpjfnlhfpfgnpldfl/change_sink.js"></script><style>@media print { body { width: auto !important; } }</style><meta name="document_iterator.js"><meta name="find_proxy.js"><meta name="get_html_text.js"><meta name="global_constants.js"><meta name="name_injection_builder.js"><meta name="number_injection_builder.js"><meta name="string_finder.js"><meta name="menu_injection_builder.js"><meta name="change_sink.js"><script async="" type="text/javascript" src="./基于ubuntu-2.6.35内核的SDIO-WiFi驱动移植 - lr_ting - 博客园_files/google_ads_gpt.js"></script><script type="text/javascript" src="./基于ubuntu-2.6.35内核的SDIO-WiFi驱动移植 - lr_ting - 博客园_files/osd.js"></script><link rel="stylesheet" type="text/css" href="chrome-extension://ejpbbhjlbipncjklfjjaedaieimbmdda/css/about.css"><link type="text/css" rel="stylesheet" charset="UTF-8" href="./基于ubuntu-2.6.35内核的SDIO-WiFi驱动移植 - lr_ting - 博客园_files/translateelement.css"><script type="text/javascript" charset="UTF-8" src="./基于ubuntu-2.6.35内核的SDIO-WiFi驱动移植 - lr_ting - 博客园_files/main_vi.js"></script><script type="text/javascript" charset="UTF-8" src="./基于ubuntu-2.6.35内核的SDIO-WiFi驱动移植 - lr_ting - 博客园_files/element_main.js"></script></head>
+<body class="backgroundPositionTuned">
+<a name="top"></a>
+
+<!--done-->
+<div id="home">
+<div id="header">
+	<div id="blogTitle">
+	<a id="lnkBlogLogo" href="http://www.cnblogs.com/lr-ting/"><img id="blogLogo" src="./基于ubuntu-2.6.35内核的SDIO-WiFi驱动移植 - lr_ting - 博客园_files/logo.gif" alt="返回主页"></a>			
+		
+<!--done-->
+<h1><a id="Header1_HeaderTitle" class="headermaintitle" href="http://www.cnblogs.com/lr-ting/">lr_ting</a></h1>
+<h2>推开一扇叫岁月的门，许多年华终于被渐次搁浅。
+而你，永远是斜格子里的光影，游走在梦与现实的边缘。
+若是时光锁住的葱茏，曳动冷冷的素月清秋，那么弱水三千，谁取你一瓢，醉饮红尘外？ 
+此生，若你安好，便是晴天。</h2>
+
+
+
+		
+	</div><!--end: blogTitle 博客的标题和副标题 -->
+</div><!--end: header 头部 -->
+
+<div id="main">
+	<div id="mainContent">
+	<div class="forFlow">
+		<div id="navigator">
+			
+<!--done-->
+			<ul id="navList">
+				<li><a id="MyLinks1_HomeLink" class="menu" href="http://www.cnblogs.com/">博客园</a></li>
+				<li><a id="MyLinks1_IngLink" class="menu" href="http://home.cnblogs.com/ing/">闪存</a></li>
+				<li><a id="MyLinks1_MyHomeLink" class="menu" href="http://www.cnblogs.com/lr-ting/">首页</a></li>
+				<li><a id="MyLinks1_NewPostLink" class="menu" rel="nofollow" href="http://www.cnblogs.com/lr-ting/admin/EditPosts.aspx?opt=1">新随笔</a></li>
+				<li><a id="MyLinks1_ContactLink" accesskey="9" class="menu" rel="nofollow" href="http://space.cnblogs.com/msg/send/lr_ting">联系</a></li>
+				<li><a id="MyLinks1_Admin" class="menu" rel="nofollow" href="http://www.cnblogs.com/lr-ting/admin/EditPosts.aspx">管理</a></li>
+				<li><a id="MyLinks1_Syndication" class="menu" href="http://www.cnblogs.com/lr-ting/rss">订阅</a>
+				<a id="MyLinks1_XMLLink" class="aHeaderXML" href="http://www.cnblogs.com/lr-ting/rss"><img src="./基于ubuntu-2.6.35内核的SDIO-WiFi驱动移植 - lr_ting - 博客园_files/rss.gif" alt="订阅"></a></li>
+			</ul>
+
+
+			<div class="blogStats">
+				
+				
+<!--done-->
+随笔- 18&nbsp;
+文章- 0&nbsp;
+评论- 22&nbsp;
+
+				
+			</div><!--end: blogStats -->
+		</div><!--end: navigator 博客导航栏 -->
+		
+	
+<!--done-->
+<div id="topics">
+	<div class="post">
+		<h1 class="postTitle">
+			<a id="cb_post_title_url" class="postTitle2" href="./基于ubuntu-2.6.35内核的SDIO-WiFi驱动移植 - lr_ting - 博客园_files/基于ubuntu-2.6.35内核的SDIO-WiFi驱动移植 - lr_ting - 博客园.htm">基于ubuntu-2.6.35内核的SDIO-WiFi驱动移植</a>
+		</h1>
+		<div class="clear"></div>
+		<div class="postBody">
+			<div id="cnblogs_post_body"><p style="text-align: left;" align="center"><strong>一、移植环境：</strong><br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 1、主机：Ubuntu 10.10发行版<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 2、目标机：FS_S5PC100平台<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 3、交叉编译工具：arm-cortex_a8-linux-gnueabi<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 4、wifi模块：marvell-8686<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 5、内核：linux-2.6.35</p>
+<p><span>---------------------------------------------------------------------</span><br><strong>二、在linux下的移植</strong><br>1. 平台代码修改</p>
+<div class="cnblogs_code">
+<pre>$ vim driver/mmc/host/sdhci.c</pre>
+</div>
+<p>屏蔽以下代码<br>629行：</p>
+<div class="cnblogs_code">
+<pre>//printK (KERN_WARING <span style="color: #800000;">"</span><span style="color: #800000;">%s: too large timeout requested!\n</span><span style="color: #800000;">"</span>, mmc_hostname(host_&gt;mmc));</pre>
+</div>
+<p>2. 内核驱动支持<br>　　因为S5PC100平台上SDIO功能已经支持，所以只需要内核驱动支持marvell-8686即可。&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; </p>
+<div class="cnblogs_code">
+<pre>$ make menuconfig</pre>
+</div>
+<p>修改：</p>
+<div class="cnblogs_code"><div class="cnblogs_code_toolbar"><span class="cnblogs_code_copy"><a href="javascript:void(0);" onclick="copyCnblogsCode(this)" title="复制代码"><img src="./基于ubuntu-2.6.35内核的SDIO-WiFi驱动移植 - lr_ting - 博客园_files/copycode.gif" alt="复制代码"></a></span></div>
+<pre>[*] Networking support ---&gt;<span style="color: #000000;">
+　　[</span>*] Wireless ---&gt;
+       &lt;*&gt; cfg80211 -<span style="color: #000000;"> wireless configuration API
+　　　　{</span>*} common routines <span style="color: #0000ff;">for</span> IEEE <span style="color: #800080;">802.11</span><span style="color: #000000;"> drivers
+Device Drivers </span>---&gt;<span style="color: #000000;">
+       [</span>*] Network device support ---&gt;<span style="color: #000000;">
+       　　Wireless LAN </span>---&gt;
+                &lt;*&gt;<span style="color: #000000;">Marvell 8xxx Libertas WLAN driver support
+                </span>&lt;*&gt; Marvell Libertas <span style="color: #800080;">8385</span>/<span style="color: #800080;">8686</span>/<span style="color: #800080;">8688</span> SDIO <span style="color: #800080;">802</span>.11b/<span style="color: #000000;">g cards
+       Generic Driver Options </span>---&gt;<span style="color: #000000;">
+                (sd8686.bin sd8686_helper.bin) External firmware blobs to build into the kernel
+                (firmware) Firmware blobs root directory</span></pre>
+<div class="cnblogs_code_toolbar"><span class="cnblogs_code_copy"><a href="javascript:void(0);" onclick="copyCnblogsCode(this)" title="复制代码"><img src="./基于ubuntu-2.6.35内核的SDIO-WiFi驱动移植 - lr_ting - 博客园_files/copycode.gif" alt="复制代码"></a></span></div></div>
+<p>3. 内核的修改<br>&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;wifi的移植依赖于网卡驱动的移植和nand-flash平台的支持，可以参考<a href="http://www.cnblogs.com/lr-ting/archive/2012/07/05/2577288.html">linux-2.6.35内核移植—网卡驱动的移植</a>和<a href="http://www.cnblogs.com/lr-ting/archive/2012/07/04/2576705.html">linux-2.6.35内核移植——Nand flash 驱动的移植</a>，文件arch/arm/mach-s5pc100/mach-smdkc100.c下有内核的分区， 把第2个分区改成8M。因为生成的文件系统太大，大于4M。<br>修改如下（红色字体部分）：</p>
+<div class="cnblogs_code"><div class="cnblogs_code_toolbar"><span class="cnblogs_code_copy"><a href="javascript:void(0);" onclick="copyCnblogsCode(this)" title="复制代码"><img src="./基于ubuntu-2.6.35内核的SDIO-WiFi驱动移植 - lr_ting - 博客园_files/copycode.gif" alt="复制代码"></a></span></div>
+<pre><span style="color: #0000ff;">static</span> <span style="color: #0000ff;">struct</span> mtd_partition s5pc100_nand_part[] =<span style="color: #000000;"> {
+        [</span><span style="color: #800080;">0</span>] =<span style="color: #000000;"> {
+            .name        </span>= <span style="color: #800000;">"</span><span style="color: #800000;">bootloader</span><span style="color: #800000;">"</span><span style="color: #000000;">,
+            .size        </span>=<span style="color: #000000;"> SZ_1M,
+            .offset        </span>= <span style="color: #800080;">0</span><span style="color: #000000;">,
+        },
+        [</span><span style="color: #800080;">1</span>] =<span style="color: #000000;"> {
+            .name        </span>= <span style="color: #800000;">"</span><span style="color: #800000;">kernel</span><span style="color: #800000;">"</span><span style="color: #000000;">,
+            .size        </span>= SZ_1M * <span style="color: #ff0000;">4</span><span style="color: #000000;">,
+            .offset        </span>=<span style="color: #000000;"> MTDPART_OFS_APPEND,
+        },
+        [</span><span style="color: #800080;">2</span>] =<span style="color: #000000;"> {
+            .name        </span>= <span style="color: #800000;">"</span><span style="color: #800000;">rootfs</span><span style="color: #800000;">"</span><span style="color: #000000;">,
+            .size        </span>=<span style="color: #000000;"> SZ_<span style="color: #ff0000;">8</span>M,
+            .offset        </span>=<span style="color: #000000;"> MTDPART_OFS_APPEND,
+        },
+        [</span><span style="color: #800080;">3</span>] =<span style="color: #000000;"> {
+            .name        </span>= <span style="color: #800000;">"</span><span style="color: #800000;">usrfs</span><span style="color: #800000;">"</span><span style="color: #000000;">,
+            .offset        </span>=<span style="color: #000000;"> MTDPART_OFS_APPEND,
+            .size        </span>=<span style="color: #000000;"> MTDPART_SIZ_FULL,
+        },
+};</span></pre>
+<div class="cnblogs_code_toolbar"><span class="cnblogs_code_copy"><a href="javascript:void(0);" onclick="copyCnblogsCode(this)" title="复制代码"><img src="./基于ubuntu-2.6.35内核的SDIO-WiFi驱动移植 - lr_ting - 博客园_files/copycode.gif" alt="复制代码"></a></span></div></div>
+<p>4. 固件准备<br>　　将固件<a href="http://download.csdn.net/detail/baby_afu/4411872">sd8686.bin</a>和<a href="http://download.csdn.net/detail/baby_afu/4411881">sd8686_helper.bin</a>拷贝到linux-2.6.35/firmware下。编译时会自动编译进内核。</p>
+<p>此处两个文件sd8686.bin和sd8686_helper.bin，我本来想上传的，可是发现这里好像不能上传附件，所以就放到csdn上了，大家可以下载使用。</p>
+<div class="cnblogs_code">
+<pre><span style="color: #000000;">$ cp sd8686.bin linux-2.6.35/firmware/<br>$ cp sd8686_helper.bin linux-2.6.35/firmware/<br>$ make zImage
+$ sudo cp zImage </span>/tftpboot</pre>
+</div>
+<p><span>---------------------------------------------------------------------</span><br><strong>三、文件系统的制作</strong></p>
+<p>1. wpa_suppicant的移植</p>
+<p>源码版本选择：<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="http://download.csdn.net/detail/baby_afu/4411942">wpa_supplicant-0.7.3</a><br>&nbsp; &nbsp; &nbsp;&nbsp;<a href="http://download.csdn.net/detail/baby_afu/4411919">openssl-0.9.8e</a></p>
+<p>[ openssl移植 ]：</p>
+<p>a、补丁安装<br>　　openssl源码编译需要打wpa_supplicant提供的补丁，我们选择的openssl版本为openssl-0.9.8e所以我们需要将wpa_supplicant-0.7.3/patches/openssl-0.9.8e-tls-extensions.patch拷贝到openssl源码下。</p>
+<div class="cnblogs_code">
+<pre>$ cp wpa_supplicant-0.7.3/patches/openssl-0.9.8e-tls-extensions.patch openssl-0.9.8e/<br>$ cd openssl-<span style="color: #800080;">0.9</span><span style="color: #000000;">.8e               
+$ patch </span>-p1 &lt; openssl-<span style="color: #800080;">0.9</span>.8e-tls-extensions.patch</pre>
+</div>
+<p>注意：－p<span style="color: #ff0000;">1</span>，这里是数字“1”.</p>
+<p>b、配置编译安装</p>
+<div class="cnblogs_code">
+<pre>$ ./Configure linux-elf-arm -DL_ENDIAN linux:<span style="color: #800000;">'</span><span style="color: #800000;">arm-cortex_a8-linux-gnueabi-gcc</span><span style="color: #800000;">'</span> shared --prefix=/home/linux/workdir/wifi/openssl</pre>
+</div>
+<p>打开openssl-0.9.8e中Makefile</p>
+<div class="cnblogs_code">
+<pre>$ vim Makefile</pre>
+</div>
+<p>&nbsp;修改如下：</p>
+<div class="cnblogs_code">
+<pre>- CC=<span style="color: #000000;"> cc
+</span>+ CC= arm-cortex_a8-linux-gnueabi-<span style="color: #000000;">gcc
+</span>- AR=<span style="color: #000000;"> ar $(ARFLAGS) r
+</span>+ AR= arm-cortex_a8-linux-gnueabi-<span style="color: #000000;">ar $(ARFLAGS) r
+</span>- RANLIB= /usr/bin/<span style="color: #000000;">ranlib
+</span>+ RANLIB= arm-cortex_a8-linux-gnueabi-ranlib</pre>
+</div>
+<p>编译：</p>
+<div class="cnblogs_code">
+<pre><span style="color: #000000;">$ make
+$ make install</span></pre>
+</div>
+<p>[ wpa_supplicant移植 ]：</p>
+<p>在/wpa_supplicant-0.7.3/wpa_supplicant目录下</p>
+<div class="cnblogs_code">
+<pre>$ cd wpa_supplicant-<span style="color: #800080;">0.7</span>.<span style="color: #800080;">3</span>/wpa_supplicant</pre>
+</div>
+<p>a、Makefile修改</p>
+<div class="cnblogs_code">
+<pre>$ vim Makefile</pre>
+</div>
+<div class="cnblogs_code">
+<pre><span style="color: #000000;">修改<br>#ifndef CC
+CC</span>=<span style="color: #000000;">gcc
+</span><span style="color: #0000ff;">#endif</span><br>为<br>CC=arm-cortex_a8-linux-gnueabi-gcc <span style="color: #008000;">//自己的交叉编译工具链</span></pre>
+</div>
+<div class="cnblogs_code"><div class="cnblogs_code_toolbar"><span class="cnblogs_code_copy"><a href="javascript:void(0);" onclick="copyCnblogsCode(this)" title="复制代码"><img src="./基于ubuntu-2.6.35内核的SDIO-WiFi驱动移植 - lr_ting - 博客园_files/copycode.gif" alt="复制代码"></a></span></div>
+<pre><span style="color: #000000;">在
+CFLAGS </span>+= -I../<span style="color: #000000;">src
+CFLAGS </span>+= -I../src/<span style="color: #000000;">utils
+下添加：
+CFLAGS </span>+= -I/home/linux/workdir/wifi/openssl/<span style="color: #000000;">include
+
+修改
+LIBS </span>+= -<span style="color: #000000;">lssl
+为
+LIBS </span>+= -lssl -L/home/linux/workdir/wifi/openssl/lib/<span style="color: #000000;">
+
+修改
+LIBS_p </span>+= -<span style="color: #000000;">lcrypto
+为
+LIBS_p </span>+= -lcrypto -L/home/linux/workdir/wifi/openssl/lib/</pre>
+<div class="cnblogs_code_toolbar"><span class="cnblogs_code_copy"><a href="javascript:void(0);" onclick="copyCnblogsCode(this)" title="复制代码"><img src="./基于ubuntu-2.6.35内核的SDIO-WiFi驱动移植 - lr_ting - 博客园_files/copycode.gif" alt="复制代码"></a></span></div></div>
+<p>b、编译</p>
+<div class="cnblogs_code">
+<pre><span style="color: #000000;">$ cp deconfig .config
+$ make</span></pre>
+</div>
+<p><span style="color: #ff0000;">此处可能出题以下问题：</span><br>/usr/bin/ld: skipping incompatible /usr/local/ssl/lib/libssl.so when searching for -lssl<br>/usr/bin/ld: skipping incompatible /usr/local/ssl/lib/libssl.a when searching for -lssl<br>/usr/bin/ld: cannot find -lssl<br>/usr/bin/ld: skipping incompatible /usr/local/ssl/lib/libcrypto.so when searching for -lcrypto<br>/usr/bin/ld: skipping incompatible /usr/local/ssl/lib/libcrypto.a when searching for -lcrypto<br>/usr/bin/ld: cannot find -lcrypto<br>collect2: ld returned 1 exit status<br>make: *** [wpa_supplicant] Error 1<br>解决方法如下：</p>
+<p>方法1：可能你在修改wpa_supp<span style="color: #000000;">licant-0.7.3/</span>wpa_supplicant下Makefile的时候，将CC=gcc直接改为CC=arm-cortex_a8-linux-gnueabi-gcc，而没有按上面方式去掉#ifndef CC和#endif这两行。</p>
+<p>方法2：需要先编译安装openssl库，确保两个编译都使用统一工具arm-cortex_a8-linux-gnueabi-gcc，这样只要把openssl和wpa_supplicant两个用同一个编译工具编译即可。</p>
+<p>方法3：如果已经安装了openssl库，还出现如上问题，建议更新源，卸载后再装，如果有文件信赖关系不对，运行命令：sudo apt-get -f install.</p>
+<p><span style="color: #ff0000;">注：方法1，亲测可行。方法2和3是我在移植的时候出现上面问题，在网上搜到的结果，好像不管用，在此帖出，以供参考。</span></p>
+<p>最后，编译</p>
+<div class="cnblogs_code">
+<pre><span style="color: #000000;">$ make</span></pre>
+</div>
+<p>将生产的wpa_supplicant和wpa_cli拷贝到根文件系统的bin目录下</p>
+<div class="cnblogs_code">
+<pre>$ cp wpa_supplicant /source/rootfs/<span style="color: #000000;">bin
+$ cp wpa_cli </span>/source/rootfs/bin</pre>
+</div>
+<p>2. 文件系统的制作</p>
+<p>此处可参考 l<a href="http://www.cnblogs.com/lr-ting/archive/2012/07/04/2576760.html">linux文件系统的移植－根文件系统制作</a>和<a href="http://www.cnblogs.com/lr-ting/archive/2012/07/04/2576762.html">linux文件系统的移植－制作JFFS2文件系统</a></p>
+<div class="cnblogs_code">
+<pre>$ cd /source/rootfs/</pre>
+</div>
+<p>a. 在根文件中添加/etc/resolv.conf，域名解析。</p>
+<div class="cnblogs_code">
+<pre>$ vim /etc/resolv.conf</pre>
+</div>
+<p>内容为：</p>
+<div class="cnblogs_code">
+<pre><span style="color: #000000;"># Generated by NetworkManager
+nameserver </span><span style="color: #800080;">192.168</span>.<span style="color: #800080;">1.1</span>    <span style="color: #008000;">//</span><span style="color: #008000;">你自己的无线路由的DNS</span>
+nameserver <span style="color: #800080;">8.8</span>.<span style="color: #800080;">8.8</span>        <span style="color: #008000;">//</span><span style="color: #008000;">此行可不写</span></pre>
+</div>
+<p>b. 在根文件系统/etc下添加wpa_supplicant配置文件wpa_supplicant.conf</p>
+<div class="cnblogs_code">
+<pre>$ vim /etc/wpa_supplicant.conf</pre>
+</div>
+<p>内容为：</p>
+<div class="cnblogs_code"><div class="cnblogs_code_toolbar"><span class="cnblogs_code_copy"><a href="javascript:void(0);" onclick="copyCnblogsCode(this)" title="复制代码"><img src="./基于ubuntu-2.6.35内核的SDIO-WiFi驱动移植 - lr_ting - 博客园_files/copycode.gif" alt="复制代码"></a></span></div>
+<pre># WPA-PSK/<span style="color: #000000;">TKIP
+ctrl_interface</span>=/<span style="color: #0000ff;">var</span>/run/<span style="color: #000000;">wpa_supplicant
+network</span>=<span style="color: #000000;">{
+ssid</span>=<span style="color: #800000;">"</span><span style="color: #800000;">XXXX</span><span style="color: #800000;">"</span><span style="color: #000000;"> #无线路由ssid
+key_mgmt</span>=WPA-<span style="color: #000000;">PSK
+proto</span>=<span style="color: #000000;">WPA
+pairwise</span>=<span style="color: #000000;">TKIP
+group</span>=<span style="color: #000000;">TKIP
+psk</span>=<span style="color: #800000;">"</span><span style="color: #800000;">XXXXXXXX</span><span style="color: #800000;">"</span><span style="color: #000000;"> #无线路由密码
+}</span></pre>
+<div class="cnblogs_code_toolbar"><span class="cnblogs_code_copy"><a href="javascript:void(0);" onclick="copyCnblogsCode(this)" title="复制代码"><img src="./基于ubuntu-2.6.35内核的SDIO-WiFi驱动移植 - lr_ting - 博客园_files/copycode.gif" alt="复制代码"></a></span></div></div>
+<p>c. 创建目录/var/run/wpa_supplicant&nbsp;&nbsp;&nbsp;</p>
+<div class="cnblogs_code">
+<pre>$ mkdir /<span style="color: #0000ff;">var</span>/run/wpa_supplicant -p</pre>
+</div>
+<p>由于2.6.35的内核不支持yaffs文件系统，而cramfs是只读文件系统，所以选择了jffs2文件系统，命令如下：</p>
+<div class="cnblogs_code">
+<pre>$ mkfs.jffs2 -r /source/rootfs -o rootfs.jffs2 -e <span style="color: #800080;">0x20000</span> --pad=<span style="color: #800080;">0x600000</span> -<span style="color: #000000;">n
+$ sudo cp rootfs.jffs2 </span>/tftpboot</pre>
+</div>
+<p>考虑到最终生成的文件系统比较大（5M多），所以--pad用的600000<br><span>&nbsp;</span><span>---------------------------------------------------------------------</span><br><strong>四、测试</strong><br>1. 移植u-boot</p>
+<p>关闭开发板电源，将拨码开关SW1调至0001(usb启动模式)后打开电源</p>
+<p>a) 加载运行USB Installer_DDR2.bin<br>　　USB Port → Transmit → Transmit，选中image目录下的USB Installer_DDR2.bin</p>
+<p><img src="./基于ubuntu-2.6.35内核的SDIO-WiFi驱动移植 - lr_ting - 博客园_files/2012070509295857.jpg" alt=""></p>
+<p>&nbsp;</p>
+<p>b) 加载运行u-boot-v45.0.bin<br>　　USB Port ? Transmit ? Transmit，选中FS_S5PC100光盘v4.5\Linux-Android\image目录下的u-boot-v45.0.bin<br>　　串口终端下能看到如下内容(如果有倒计时数字，按任意键出现提示符)&nbsp;&nbsp;</p>
+<p><img src="./基于ubuntu-2.6.35内核的SDIO-WiFi驱动移植 - lr_ting - 博客园_files/2012070509305142.jpg" alt=""></p>
+<p>c)设置并保存环境变量</p>
+<div class="cnblogs_code"><div class="cnblogs_code_toolbar"><span class="cnblogs_code_copy"><a href="javascript:void(0);" onclick="copyCnblogsCode(this)" title="复制代码"><img src="./基于ubuntu-2.6.35内核的SDIO-WiFi驱动移植 - lr_ting - 博客园_files/copycode.gif" alt="复制代码"></a></span></div>
+<pre># printenv <span style="color: #008000;">//</span><span style="color: #008000;"> 查看环境变量的值并按如下设置</span>
+# setenv baudrate <span style="color: #800080;">115200</span><span style="color: #000000;">
+# setenv ethaddr </span><span style="color: #800080;">11</span>:<span style="color: #800080;">22</span>:<span style="color: #800080;">33</span>:<span style="color: #800080;">44</span>:<span style="color: #800080;">55</span>:<span style="color: #800080;">66</span># setenv gatewayip <span style="color: #800080;">192.168</span>.<span style="color: #800080;">1.1</span><span style="color: #000000;">
+# setenv serverip </span><span style="color: #800080;">192.168</span>.<span style="color: #800080;">1.237</span> <span style="color: #008000;">//</span><span style="color: #008000;"> serverip要和虚拟机的ip相同</span>
+# setenv ipaddr <span style="color: #800080;">192.168</span>.<span style="color: #800080;">1.223</span> <span style="color: #008000;">//</span><span style="color: #008000;"> ipaddr也可以是192.168.1.x其他值</span>
+# setenv netmask <span style="color: #800080;">255.255</span>.<span style="color: #800080;">255.0<br><span style="color: #000000;"># saveenv</span></span></pre>
+<div class="cnblogs_code_toolbar"><span class="cnblogs_code_copy"><a href="javascript:void(0);" onclick="copyCnblogsCode(this)" title="复制代码"><img src="./基于ubuntu-2.6.35内核的SDIO-WiFi驱动移植 - lr_ting - 博客园_files/copycode.gif" alt="复制代码"></a></span></div></div>
+<p>d) 烧写u-boot-v45.0.bin到nand flash起始地址</p>
+<div class="cnblogs_code">
+<pre># tftp <span style="color: #800080;">20008000</span> u-boot-v45.<span style="color: #800080;">0</span><span style="color: #000000;">.bin
+# nand erase </span><span style="color: #800080;">0</span> <span style="color: #800080;">40000</span><span style="color: #000000;">;
+# nand write </span><span style="color: #800080;">20008000</span> <span style="color: #800080;">0</span> <span style="color: #800080;">40000</span>　　</pre>
+</div>
+<p>2. 移植内核</p>
+<div class="cnblogs_code">
+<pre># tftp <span style="color: #800080;">20008000</span><span style="color: #000000;"> zImage
+# nand erase </span><span style="color: #800080;">100000</span> <span style="color: #800080;">400000</span><span style="color: #000000;">
+# nand write </span><span style="color: #800080;">20008000</span> <span style="color: #800080;">100000</span> <span style="color: #800080;">400000</span></pre>
+</div>
+<p>3. 移植jffs2文件系统</p>
+<div class="cnblogs_code">
+<pre># tftp <span style="color: #800080;">20008000</span><span style="color: #000000;"> rootfs.jffs2
+# nand erase </span><span style="color: #800080;">400000</span> <span style="color: #800080;">800000</span><span style="color: #000000;">
+# nand write </span><span style="color: #800080;">20008000</span> <span style="color: #800080;">500000</span> <span style="color: #800080;">800000</span></pre>
+</div>
+<p>4. 设置启动参数</p>
+<div class="cnblogs_code">
+<pre># setenv bootdelay <span style="color: #800080;">3</span><span style="color: #000000;">
+# setenv bootcmd nand read </span><span style="color: #800080;">20008000</span> <span style="color: #800080;">100000</span> 4<span style="color: #800080;">00000</span>\; bootm <span style="color: #800080;">20008000</span><span style="color: #000000;">
+# setenv bootargs root</span>=/dev/mtdblock2 init=/linuxrc rootfstype=<span style="color: #000000;">jffs2 rw console</span>=ttySAC0,<span style="color: #800080;">115200</span><span style="color: #000000;">
+# boot</span></pre>
+</div>
+<p><span>---------------------------------------------------------------------</span><br><strong>五、 WIFI模块的测试</strong><br>启动开发板完成如下操作：<br>　　● 配置无线网卡ip&nbsp; &nbsp; &nbsp;&nbsp;</p>
+<div class="cnblogs_code">
+<pre># ifconfig wlan0 <span style="color: #800080;">192.168</span>.<span style="color: #800080;">1.200<br><span style="color: #000000;"># ifconfig -a</span></span></pre>
+</div>
+<p><img src="./基于ubuntu-2.6.35内核的SDIO-WiFi驱动移植 - lr_ting - 博客园_files/2012070509353513.jpg" alt=""></p>
+<p>　　● 配置默认网关</p>
+<div class="cnblogs_code">
+<pre># route add <span style="color: #0000ff;">default</span> gw <span style="color: #800080;">192.168</span>.<span style="color: #800080;">1.1</span></pre>
+</div>
+<p>　　● 启动wpa_supplicant连接无线网络</p>
+<div class="cnblogs_code">
+<pre># wpa_supplicant -B -iwlan0 -c /etc/wpa_supplicant.conf</pre>
+</div>
+<p><span style="color: #ff0000;">问题：wifi libertas: problem fetching packet from firmware</span><br><span style="color: #ff0000;">解决：网上有好多解决方法，但都不适用我的情况，最后换了一个wifi模块，就好了。大家也可以看看是不是模块的问题。</span></p>
+<p><span style="color: #ff0000;">注：这是我们在做的时候，是经过反复的排查，最后确认不是程序问题的情况下，才考虑模块本身是否会有问题的。这里不保证会因为其他程序问题导致以上问题，所以在出现此问题时，最好先确认程序本身的正确性。</span><br>　　● 查看连接状态</p>
+<div class="cnblogs_code">
+<pre># wpa_cli status</pre>
+</div>
+<p><img src="./基于ubuntu-2.6.35内核的SDIO-WiFi驱动移植 - lr_ting - 博客园_files/2012070509471726.jpg" alt=""></p>
+<p>路由器在设置的时候，也要按照上图中对应的参数进行设置，不然下面会ping不通的。 &nbsp; &nbsp; &nbsp; &nbsp;</p>
+<p>ping <span style="text-decoration: underline; color: #ff00ff;"><span style="text-decoration: underline;"><a href="http://www.baidu.com/"><span style="color: #ff00ff; text-decoration: underline;">www</span></a>.youku.com.cn</span></span></p>
+<p><img src="./基于ubuntu-2.6.35内核的SDIO-WiFi驱动移植 - lr_ting - 博客园_files/2012070509504159.jpg" alt=""></p>
+<p>完成 ！</p>
+<p>&nbsp;</p>
+<p>原文链接：<a href="./基于ubuntu-2.6.35内核的SDIO-WiFi驱动移植 - lr_ting - 博客园_files/基于ubuntu-2.6.35内核的SDIO-WiFi驱动移植 - lr_ting - 博客园.htm">http://www.cnblogs.com/lr-ting/archive/2012/07/05/2563326.html</a></p></div><div id="MySignature"></div>
+<script type="text/javascript">
+var isLogined = false;
+var cb_blogId = 120140;
+var cb_entryId = 2563326;
+var cb_blogApp = currentBlogApp;
+var cb_blogUserGuid = "e1a1257a-56b5-e111-aa3f-842b2b196315";
+var cb_entryCreatedDate = '2012/7/5 10:01:00';
+var enableGoogleAd = true;
+var googletag = googletag || {};
+googletag.cmd = googletag.cmd || [];
+</script>
+<div id="blog_post_info_block">
+<div id="blog_post_info"><div id="BlogPostCategory"></div>
+<div id="EntryTag">标签: <a href="http://www.cnblogs.com/lr-ting/tag/ubuntu/">ubuntu</a>, <a href="http://www.cnblogs.com/lr-ting/tag/%E5%B5%8C%E5%85%A5%E5%BC%8F/">嵌入式</a>, <a href="http://www.cnblogs.com/lr-ting/tag/%E7%A7%BB%E6%A4%8D/">移植</a>, <a href="http://www.cnblogs.com/lr-ting/tag/farsight/">farsight</a>, <a href="http://www.cnblogs.com/lr-ting/tag/wifi/">wifi</a>, <a href="http://www.cnblogs.com/lr-ting/tag/wpa_suppicant/">wpa_suppicant</a>, <a href="http://www.cnblogs.com/lr-ting/tag/openssl/">openssl</a></div>
+<div id="green_channel">
+绿色通道：
+<a href="javascript:void(0);" id="green_channel_digg" onclick="DiggIt(cb_entryId,cb_blogId,1);green_channel_success(this,&#39;谢谢推荐！&#39;);">好文要顶</a>
+<a id="green_channel_follow" onclick="c_follow();" href="javascript:void(0);">关注我</a>
+<a id="green_channel_favorite" onclick="AddToWz(cb_entryId);return false;" href="javascript:void(0);">收藏该文</a><a id="green_channel_contact" href="http://space.cnblogs.com/msg/send/lr_ting" target="_blank">与我联系</a>
+<a id="green_channel_weibo" href="javascript:void(0);" title="分享至新浪微博" onclick="ShareToTsina()"><img src="./基于ubuntu-2.6.35内核的SDIO-WiFi驱动移植 - lr_ting - 博客园_files/icon_weibo_24.png" alt=""></a>
+</div>
+<div id="digg_block">
+<div id="author_profile">
+<div id="author_profile_info" class="author_profile_info">
+<div id="author_profile_detail" class="author_profile_info">
+<a href="http://home.cnblogs.com/u/lr-ting/">lr_ting</a><br>
+<a href="http://home.cnblogs.com/u/lr-ting/followees">关注 - 2</a><br>
+<a href="http://home.cnblogs.com/u/lr-ting/followers">粉丝 - 12</a>
+</div>
+</div>
+<div class="clear"></div>
+<div id="author_profile_honor"></div>
+<div id="author_profile_follow">
+<a href="javascript:void(0);" onclick="c_follow();return false;">+加关注</a>
+</div>
+</div>
+<div id="div_digg">										
+	<div class="diggit" onclick="votePost(cb_entryId,&#39;Digg&#39;)"> 
+		<span class="diggnum" id="digg_count">1</span>
+	</div>
+	<div class="buryit" onclick="votePost(cb_entryId,&#39;Bury&#39;)"> 
+		<span class="burynum" id="bury_count">0</span>
+	</div>
+	<div class="clear"></div>	
+	<div class="diggword" id="digg_tips">
+    (请您对文章做出评价)
+    </div>	
+</div>
+</div></div>
+<div class="clear"></div>
+<div id="post_next_prev"><a href="http://www.cnblogs.com/lr-ting/archive/2012/06/19/2555207.html" class="p_n_p_prefix">« </a> 博主前一篇：<a href="http://www.cnblogs.com/lr-ting/archive/2012/06/19/2555207.html" title="发布于2012-06-19 18:04">ubuntu 编写自己的ls命令</a><br><a href="http://www.cnblogs.com/lr-ting/archive/2012/07/05/2577288.html" class="p_n_p_prefix">» </a> 博主后一篇：<a href="http://www.cnblogs.com/lr-ting/archive/2012/07/05/2577288.html" title="发布于2012-07-05 19:07">linux-2.6.35内核移植—网卡驱动的移植</a><br></div>
+</div>
+<script type="text/javascript">
+    //SyntaxHighlighter.config.strings.expandSource = '<span><img src="http://static.cnblogs.com/images/expand-code.gif" alt="" class="expand-code-icon"/>View Code</span>';
+    $(function () {             
+        fixPostBodyFormat();
+        loadAdUnderPost();
+        loadBlogSignature();
+        LoadPostInfoBlock(cb_blogId, cb_entryId, cb_blogApp, cb_blogUserGuid);
+        GetPrevNextPost(cb_entryId, cb_blogId, cb_entryCreatedDate);        
+        GetHistoryToday(cb_blogId, cb_blogApp, cb_entryCreatedDate);        
+    });
+</script>
+		</div>
+		<div class="postDesc">posted @ <span id="post-date">2012-07-05 10:01</span> <a href="http://www.cnblogs.com/lr-ting/">lr_ting</a> 阅读(1171) 评论(<span id="post-comment-count">0</span>)  <a href="http://www.cnblogs.com/lr-ting/admin/EditPosts.aspx?postid=2563326" rel="nofollow">编辑</a> <a href="http://www.cnblogs.com/lr-ting/archive/2012/07/05/2563326.html#" onclick="AddToWz(2563326);return false;">收藏</a></div>
+	</div>
+	<img src="./基于ubuntu-2.6.35内核的SDIO-WiFi驱动移植 - lr_ting - 博客园_files/2563326.html" width="1" height="1" alt="">
+	
+</div><!--end: topics 文章、评论容器-->
+<div id="blog-comments-placeholder"></div><script type="text/javascript">var commentManager = new blogCommentManager();commentManager.loadComments();</script>
+<div id="comment_form" class="commentform">
+<div id="divCommentShow"></div>
+<div id="comment_nav"><span id="span_refresh_tips"></span><a href="javascript:void(0);" id="lnk_RefreshComments" onclick="return RefreshCommentList();">刷新评论</a><a href="http://www.cnblogs.com/lr-ting/archive/2012/07/05/2563326.html#" onclick="return RefreshPage();">刷新页面</a><a href="http://www.cnblogs.com/lr-ting/archive/2012/07/05/2563326.html#top">返回顶部</a></div>
+<div id="comment_form_container"><div class="login_tips">注册用户登录后才能发表评论，请 <a rel="nofollow" href="javascript:void(0);" class="underline" onclick="return login(&#39;commentform&#39;);">登录</a> 或 <a rel="nofollow" href="javascript:void(0);" class="underline" onclick="return register();">注册</a>，<a href="http://www.cnblogs.com/">访问</a>网站首页。</div></div>
+
+<script type="text/javascript">
+    if (typeof commentManager === 'undefined') {
+        commentManager = new blogCommentManager();
+    }
+    commentManager.loadCommentForm();   
+</script>
+
+<div class="ad_text_commentbox" id="ad_text_under_commentbox"><a href="http://job.cnblogs.com/Offer/28184/" target="_blank"><b>沪江网诚聘中级/高级.NET程序员（社区方向）</b></a><br></div>
+<div id="site_nav_under"><a href="http://www.cnblogs.com/" target="_blank" title="程序员的网上家园">博客园首页</a><a href="http://q.cnblogs.com/" target="_blank" title="程序员问答社区">博问</a><a href="http://news.cnblogs.com/" target="_blank" title="IT新闻">新闻</a><a href="http://home.cnblogs.com/ing/" target="_blank">闪存</a><a href="http://job.cnblogs.com/" target="_blank">程序员招聘</a><a href="http://kb.cnblogs.com/" target="_blank">知识库</a></div>
+<div id="ad_under_post_holder">
+<div id="google_ad_c1" class="c_ad_block">
+<!-- cnblogs_blogpost_C1_sitehome -->
+<div id="div-gpt-ad-1346480159711-0" style="width: 300px; height: 250px;">
+
+<iframe id="google_ads_iframe_/1090369/cnblogs_blogpost_C1_sitehome_0" name="google_ads_iframe_/1090369/cnblogs_blogpost_C1_sitehome_0" width="300" height="250" scrolling="no" marginwidth="0" marginheight="0" frameborder="0" style="border: 0px;"></iframe><iframe id="google_ads_iframe_/1090369/cnblogs_blogpost_C1_sitehome_0__hidden__" name="google_ads_iframe_/1090369/cnblogs_blogpost_C1_sitehome_0__hidden__" width="0" height="0" scrolling="no" marginwidth="0" marginheight="0" frameborder="0" style="border: 0px; visibility: hidden; display: none;"></iframe></div>
+</div>
+<div id="blog_news_kb"><div class="itnews c_ad_block"><b>最新IT新闻</b>:<br> ·  <a href="http://news.cnblogs.com/n/164408/" target="_blank">白色版Nexus 4开始预订 或12月13日上市</a><br> ·  <a href="http://news.cnblogs.com/n/164407/" target="_blank">欢聚时代今晚或登纳市 传已获4倍超额认购</a><br> ·  <a href="http://news.cnblogs.com/n/164406/" target="_blank">苹果招聘页面显示Siri或将支持更多中文方言</a><br> ·  <a href="http://news.cnblogs.com/n/164405/" target="_blank">中电信巨资重邀明星做代言人 2013主打明星手机</a><br> ·  <a href="http://news.cnblogs.com/n/164404/" target="_blank">Foursquare融资遇冷：投资者不再青睐社交媒体</a><br>» <a href="http://news.cnblogs.com/" title="IT新闻" target="_blank">更多新闻...</a></div><div class="itnews c_ad_block" id="kb_block"><b>最新知识库文章</b>:<br><div id="kb_recent"> ·  <a href="http://kb.cnblogs.com/page/163128/" target="_blank">如何提高代码质量（管理篇）：代码复查</a><br> ·  <a href="http://kb.cnblogs.com/page/163000/" target="_blank">高效代码审查的十个经验</a><br> ·  <a href="http://kb.cnblogs.com/page/163856/" target="_blank">与身俱来的专注力你用到了多少？</a><br> ·  <a href="http://kb.cnblogs.com/page/164125/" target="_blank">和菜头：放开那些员工</a><br> ·  <a href="http://kb.cnblogs.com/page/163907/" target="_blank">清华差生10年奋斗经历</a><br></div>» <a href="http://kb.cnblogs.com/" target="_blank">更多知识库文章...</a></div></div>
+<div id="google_ad_c2" class="c_ad_block">
+<!-- cnblogs_blogpost_C2_sitehome -->
+<div id="div-gpt-ad-1346479110744-1" style="width: 468px; height: 60px;">
+
+<iframe id="google_ads_iframe_/1090369/cnblogs_blogpost_C2_sitehome_0" name="google_ads_iframe_/1090369/cnblogs_blogpost_C2_sitehome_0" width="468" height="60" scrolling="no" marginwidth="0" marginheight="0" frameborder="0" style="border: 0px;"></iframe></div>
+</div>
+<div id="ad_under_google" class="c_ad_block">
+<a href="http://www.china-pub.com/static07/1206/12znq_dyb_20120618/12znq_dyb_20120618.asp" target="_blank" rel="nofollow"><img src="./基于ubuntu-2.6.35内核的SDIO-WiFi驱动移植 - lr_ting - 博客园_files/china-pub-0620.jpg" alt="" style="border:0px;"></a><br>
+<a href="http://www.china-pub.com/sale/usedbook.aspx" target="_blank" rel="nofollow">China-Pub 低价书精选</a><br>
+<a href="http://www.china-pub.com/static07/0901/zh_jueba_090121.asp" target="_blank" rel="nofollow">China-Pub 计算机绝版图书按需印刷服务</a>
+</div></div>
+<div id="HistoryToday" class="c_ad_block"></div>
+</div>
+
+
+
+
+
+	</div><!--end: forFlow -->
+	</div><!--end: mainContent 主体内容容器-->
+
+	<div id="sideBar">
+		<div id="sideBarMain">
+			
+<!--done-->
+<div class="newsItem">
+<h3 class="catListTitle">公告</h3>
+	<div id="blog-news" style=""><p>
+</p><div id="clustrmaps-widget" style="width: 160px; height: 106px; position: relative;"><a href="http://www4.clustrmaps.com/counter/maps.php?url=http://www.cnblogs.com/lr-ting/" style="border: none;"><img style="background-image: url(http://www4.clustrmaps.com/images/nasa_classic.jpg); border: none; position: absolute; left: 0px; top: 0px; padding: 0px; background-position: initial initial; background-repeat: initial initial;" src="./基于ubuntu-2.6.35内核的SDIO-WiFi驱动移植 - lr_ting - 博客园_files/www.cnblogs.com-lr-ting--thumb-text.png"><img src="./基于ubuntu-2.6.35内核的SDIO-WiFi驱动移植 - lr_ting - 博客园_files/www.cnblogs.com-lr-ting--thumb-dots.png" style="position: absolute; border: none; z-index: 1; left: 0px; top: 0px; padding: 0px;"><script src="./基于ubuntu-2.6.35内核的SDIO-WiFi驱动移植 - lr_ting - 博客园_files/dynamic.js"></script><img style="left: 127px; top: 41px; position: absolute; width: 9px; height: 9px; border: none; display: inline; z-index: 1; padding: 0px;" src="./基于ubuntu-2.6.35内核的SDIO-WiFi驱动移植 - lr_ting - 博客园_files/smallyellow.png"><img style="left: 126px; top: 45px; position: absolute; width: 9px; height: 9px; border: none; display: inline; z-index: 1; padding: 0px;" src="./基于ubuntu-2.6.35内核的SDIO-WiFi驱动移植 - lr_ting - 博客园_files/smallyellow.png"><img style="left: 129px; top: 45px; position: absolute; width: 9px; height: 9px; border: none; display: inline; z-index: 1; padding: 0px;" src="./基于ubuntu-2.6.35内核的SDIO-WiFi驱动移植 - lr_ting - 博客园_files/smallyellow.png"><img style="left: 128px; top: 44px; position: absolute; width: 9px; height: 9px; border: none; display: inline; z-index: 1; padding: 0px;" src="./基于ubuntu-2.6.35内核的SDIO-WiFi驱动移植 - lr_ting - 博客园_files/smallyellow.png"><img style="left: 129px; top: 45px; position: absolute; width: 9px; height: 9px; border: none; display: inline; z-index: 1; padding: 0px;" src="./基于ubuntu-2.6.35内核的SDIO-WiFi驱动移植 - lr_ting - 博客园_files/smallyellow.png"><img style="left: 126px; top: 49px; position: absolute; width: 9px; height: 9px; border: none; display: inline; z-index: 1; padding: 0px;" src="./基于ubuntu-2.6.35内核的SDIO-WiFi驱动移植 - lr_ting - 博客园_files/smallyellow.png"><img style="left: 127px; top: 41px; position: absolute; width: 9px; height: 9px; border: none; display: inline; z-index: 1; padding: 0px;" src="./基于ubuntu-2.6.35内核的SDIO-WiFi驱动移植 - lr_ting - 博客园_files/smallyellow.png"><img style="left: 128px; top: 45px; position: absolute; width: 9px; height: 9px; border: none; display: inline; z-index: 1; padding: 0px;" src="./基于ubuntu-2.6.35内核的SDIO-WiFi驱动移植 - lr_ting - 博客园_files/smallyellow.png"><img style="left: 126px; top: 49px; position: absolute; width: 9px; height: 9px; border: none; display: inline; z-index: 1; padding: 0px;" src="./基于ubuntu-2.6.35内核的SDIO-WiFi驱动移植 - lr_ting - 博客园_files/smallyellow.png"><img style="left: 123px; top: 54px; position: absolute; width: 9px; height: 9px; border: none; display: inline; z-index: 1; padding: 0px;" src="./基于ubuntu-2.6.35内核的SDIO-WiFi驱动移植 - lr_ting - 博客园_files/smallyellow.png"><img style="left: 128px; top: 45px; position: absolute; width: 9px; height: 9px; border: none; display: inline; z-index: 1; padding: 0px;" src="./基于ubuntu-2.6.35内核的SDIO-WiFi驱动移植 - lr_ting - 博客园_files/smallyellow.png"></a></div>
+	
+	<noscript>
+		&lt;a href="http://www4.clustrmaps.com/user/176ff48e"&gt;
+			&lt;img src="http://www4.clustrmaps.com/stats/maps-no_clusters/www.cnblogs.com-lr-ting--thumb.jpg" alt="Locations of visitors to this page" /&gt;
+		&lt;/a&gt;
+	</noscript>
+<p></p>
+<div align="bottom">
+<boby>点击量：</boby>
+<img border="0" src="./基于ubuntu-2.6.35内核的SDIO-WiFi驱动移植 - lr_ting - 博客园_files/counter.php" alt="simple statistics" height="20">
+</div><div id="profile_block">昵称：<a href="http://home.cnblogs.com/u/lr-ting/">lr_ting</a><br>园龄：<a href="http://home.cnblogs.com/u/lr-ting/" title="入园时间：2012-06-13">5个月</a><br>粉丝：<a href="http://home.cnblogs.com/u/lr-ting/followers/">12</a><br>关注：<a href="http://home.cnblogs.com/u/lr-ting/followees/">2</a><div id="p_b_follow"><a href="javascript:void(0);" onclick="cnblogs.UserManager.FollowBlogger(&#39;e1a1257a-56b5-e111-aa3f-842b2b196315&#39;)">+加关注</a></div></div></div>
+</div>
+
+			<div id="calendar"><div id="blog-calendar" style="displya:none"><table id="blogCalendar" class="Cal" cellspacing="0" cellpadding="0" title="Calendar">
+	<tbody><tr><td colspan="7"><table class="CalTitle" cellspacing="0">
+		<tbody><tr><td class="CalNextPrev"><a href="javascript:void(0);" onclick="loadBlogCalendar(&#39;2012/06/01&#39;);return false;">&lt;</a></td><td align="center">2012年7月</td><td class="CalNextPrev" align="right"><a href="javascript:void(0);" onclick="loadBlogCalendar(&#39;2012/08/01&#39;);return false;">&gt;</a></td></tr>
+	</tbody></table></td></tr><tr><th class="CalDayHeader" align="center" abbr="日" scope="col">日</th><th class="CalDayHeader" align="center" abbr="一" scope="col">一</th><th class="CalDayHeader" align="center" abbr="二" scope="col">二</th><th class="CalDayHeader" align="center" abbr="三" scope="col">三</th><th class="CalDayHeader" align="center" abbr="四" scope="col">四</th><th class="CalDayHeader" align="center" abbr="五" scope="col">五</th><th class="CalDayHeader" align="center" abbr="六" scope="col">六</th></tr><tr><td class="CalOtherMonthDay" align="center">24</td><td class="CalOtherMonthDay" align="center">25</td><td class="CalOtherMonthDay" align="center">26</td><td class="CalOtherMonthDay" align="center">27</td><td class="CalOtherMonthDay" align="center">28</td><td class="CalOtherMonthDay" align="center">29</td><td class="CalOtherMonthDay" align="center">30</td></tr><tr><td class="CalWeekendDay" align="center">1</td><td align="center">2</td><td align="center">3</td><td align="center">4</td><td align="center"><a href="http://www.cnblogs.com/lr-ting/archive/2012/07/05.html"><u>5</u></a></td><td align="center">6</td><td class="CalWeekendDay" align="center">7</td></tr><tr><td class="CalWeekendDay" align="center">8</td><td align="center"><a href="http://www.cnblogs.com/lr-ting/archive/2012/07/09.html"><u>9</u></a></td><td align="center">10</td><td align="center">11</td><td align="center">12</td><td align="center">13</td><td class="CalWeekendDay" align="center">14</td></tr><tr><td class="CalWeekendDay" align="center">15</td><td align="center">16</td><td align="center">17</td><td align="center">18</td><td align="center">19</td><td align="center">20</td><td class="CalWeekendDay" align="center">21</td></tr><tr><td class="CalWeekendDay" align="center">22</td><td align="center">23</td><td align="center">24</td><td align="center">25</td><td align="center">26</td><td align="center">27</td><td class="CalWeekendDay" align="center">28</td></tr><tr><td class="CalWeekendDay" align="center">29</td><td align="center">30</td><td align="center">31</td><td class="CalOtherMonthDay" align="center">1</td><td class="CalOtherMonthDay" align="center">2</td><td class="CalOtherMonthDay" align="center">3</td><td class="CalOtherMonthDay" align="center">4</td></tr>
+</tbody></table></div></div>
+			
+			<div id="leftcontentcontainer">
+				<div id="blog-sidecolumn">
+
+<div class="mySearch">
+<h3 class="catListTitle">搜索</h3>
+<div id="widget_my_zzk" class="div_my_zzk"><input type="text" id="q" onkeydown="return zzk_go_enter(event);" class="input_my_zzk">&nbsp;<input onclick="zzk_go()" type="button" value="找找看" id="btnZzk" class="btn_my_zzk"></div>
+<div id="widget_my_google" class="div_my_zzk"><input type="text" name="google_q" id="google_q" onkeydown="return google_go_enter(event)" class="input_my_zzk">&nbsp;<input onclick="google_go()" type="button" value="谷歌搜索" class="btn_my_zzk"></div>
+</div>
+
+
+<div class="catListLink">
+<h3 class="catListTitle">常用链接</h3>
+<ul>
+
+		<li><a id="ctl01_rptMainLinks_lnkLinkItem_0" href="http://www.cnblogs.com/lr-ting/MyPosts.html">我的随笔</a></li>
+	
+		<li><a id="ctl01_rptMainLinks_lnkLinkItem_1" href="http://www.cnblogs.com/lr-ting/MyComments.html">我的评论</a></li>
+	
+		<li><a id="ctl01_rptMainLinks_lnkLinkItem_2" title="我发表过评论的随笔" href="http://www.cnblogs.com/lr-ting/OtherPosts.html">我的参与</a></li>
+	
+		<li><a id="ctl01_rptMainLinks_lnkLinkItem_3" href="http://www.cnblogs.com/lr-ting/RecentComments.html">最新评论</a></li>
+	
+		<li><a id="ctl01_rptMainLinks_lnkLinkItem_4" href="http://www.cnblogs.com/lr-ting/tag/">我的标签</a></li>
+	
+<li><a id="itemListLink" onclick="this.blur();WarpClass(&#39;itemListLink&#39;, &#39;itemListLin_con&#39;);return false;" href="http://www.cnblogs.com/lr-ting/archive/2012/07/05/2563326.html#">更多链接</a></li>
+</ul>
+<div id="itemListLin_con" style="display:none;">
+<ul>
+
+</ul>
+</div>
+</div>
+<div class="catListTag">
+<h3 class="catListTitle">我的标签</h3>
+<ul>
+<li><a href="http://www.cnblogs.com/lr-ting/tag/ubuntu/">ubuntu</a>(12)</li><li><a href="http://www.cnblogs.com/lr-ting/tag/%E7%A7%BB%E6%A4%8D/">移植</a>(8)</li><li><a href="http://www.cnblogs.com/lr-ting/tag/farsight/">farsight</a>(8)</li><li><a href="http://www.cnblogs.com/lr-ting/tag/%E5%B5%8C%E5%85%A5%E5%BC%8F/">嵌入式</a>(7)</li><li><a href="http://www.cnblogs.com/lr-ting/tag/linux/">linux</a>(6)</li><li><a href="http://www.cnblogs.com/lr-ting/tag/vi/">vi</a>(2)</li><li><a href="http://www.cnblogs.com/lr-ting/tag/vim/">vim</a>(1)</li><li><a href="http://www.cnblogs.com/lr-ting/tag/wifi/">wifi</a>(1)</li><li><a href="http://www.cnblogs.com/lr-ting/tag/win7/">win7</a>(1)</li><li><a href="http://www.cnblogs.com/lr-ting/tag/windows/">windows</a>(1)</li><li><a href="http://www.cnblogs.com/lr-ting/tag/">更多</a></li>
+</ul>
+</div>
+<div class="catListPostArchive">
+<h3 class="catListTitle">随笔档案</h3>
+
+<ul>
+
+<li><a id="ctl03_CatList_LinkList_0_Link_0" href="http://www.cnblogs.com/lr-ting/archive/2012/11.html">2012年11月 (1)</a> </li>
+
+<li><a id="ctl03_CatList_LinkList_0_Link_1" href="http://www.cnblogs.com/lr-ting/archive/2012/09.html">2012年9月 (4)</a> </li>
+
+<li><a id="ctl03_CatList_LinkList_0_Link_2" href="http://www.cnblogs.com/lr-ting/archive/2012/08.html">2012年8月 (2)</a> </li>
+
+<li><a id="ctl03_CatList_LinkList_0_Link_3" href="http://www.cnblogs.com/lr-ting/archive/2012/07.html">2012年7月 (6)</a> </li>
+
+<li><a id="ctl03_CatList_LinkList_0_Link_4" href="http://www.cnblogs.com/lr-ting/archive/2012/06.html">2012年6月 (5)</a> </li>
+
+</ul>
+
+</div>
+
+
+<div class="catListComment">
+<h3 class="catListTitle">最新评论<a id="_2451f28_RSSHyperlink1" title="RSS订阅最最新评论" href="http://www.cnblogs.com/lr-ting/CommentsRSS.aspx"><img title="RSS订阅最最新评论" src="./基于ubuntu-2.6.35内核的SDIO-WiFi驱动移植 - lr_ting - 博客园_files/xml.gif" alt=""></a></h3>
+
+	<div id="RecentCommentsBlock"><ul>
+    <li class="recent_comment_title"><a href="http://www.cnblogs.com/lr-ting/archive/2012/09/23/2699278.html#2481233">1. Re:两行命令让你的win7也能当无线路由使用</a></li>
+    <li class="recent_comment_body">很好，如果点击属性后没有出现上述的“共享”，很可能是因为你的本本本身的无线网络被禁用了。</li>
+    <li class="recent_comment_author">--lonely_rain</li>
+    <li class="recent_comment_title"><a href="http://www.cnblogs.com/lr-ting/archive/2012/09/23/2699278.html#2481227">2. Re:两行命令让你的win7也能当无线路由使用</a></li>
+    <li class="recent_comment_body"><a href="http://www.cnblogs.com/lr-ting/archive/2012/07/05/2563326.html#2480434" title="查看所回复的评论">@</a>银光小子<br>这个也是要看网卡的，有很多安卓确实连不上，iphone可以</li>
+    <li class="recent_comment_author">--junyuz</li>
+    <li class="recent_comment_title"><a href="http://www.cnblogs.com/lr-ting/archive/2012/09/23/2699278.html#2481133">3. Re:两行命令让你的win7也能当无线路由使用</a></li>
+    <li class="recent_comment_body">500) this.width=500;"/&gt;这是什么情况</li>
+    <li class="recent_comment_author">--忆直的阳子</li>
+    <li class="recent_comment_title"><a href="http://www.cnblogs.com/lr-ting/archive/2012/09/23/2699278.html#2480709">4. Re:两行命令让你的win7也能当无线路由使用</a></li>
+    <li class="recent_comment_body"><a href="http://www.cnblogs.com/lr-ting/archive/2012/07/05/2563326.html#2480434" title="查看所回复的评论">@</a>银光小子<br>我的小米也是这样上网的。</li>
+    <li class="recent_comment_author">--afeng124</li>
+    <li class="recent_comment_title"><a href="http://www.cnblogs.com/lr-ting/archive/2012/09/23/2699278.html#2480508">5. Re:两行命令让你的win7也能当无线路由使用</a></li>
+    <li class="recent_comment_body">win7电脑变无限路由，很刁啊~</li>
+    <li class="recent_comment_author">--西安.王磊</li>
+</ul>
+</div>
+</div>
+
+<div class="catListView">
+<h3 class="catListTitle">阅读排行榜</h3>
+	<div id="TopViewPostsBlock"><ul><li><a href="http://www.cnblogs.com/lr-ting/archive/2012/09/23/2699278.html">1. 两行命令让你的win7也能当无线路由使用(2829)</a></li><li><a href="./基于ubuntu-2.6.35内核的SDIO-WiFi驱动移植 - lr_ting - 博客园_files/基于ubuntu-2.6.35内核的SDIO-WiFi驱动移植 - lr_ting - 博客园.htm">2. 基于ubuntu-2.6.35内核的SDIO-WiFi驱动移植(1171)</a></li><li><a href="http://www.cnblogs.com/lr-ting/archive/2012/08/24/2652482.html">3. linux 网络编程-基础篇(274)</a></li><li><a href="http://www.cnblogs.com/lr-ting/archive/2012/09/21/2696928.html">4. va_start和va_end使用详解(213)</a></li><li><a href="http://www.cnblogs.com/lr-ting/archive/2012/07/05/2576705.html">5. linux-2.6.35内核移植——Nand flash 驱动的移植(200)</a></li></ul></div>
+</div>
+
+<div class="catListFeedback">
+<h3 class="catListTitle">评论排行榜</h3>
+	<div id="TopFeedbackPostsBlock"><ul><li><a href="http://www.cnblogs.com/lr-ting/archive/2012/09/23/2699278.html">1. 两行命令让你的win7也能当无线路由使用(21)</a></li><li><a href="http://www.cnblogs.com/lr-ting/archive/2012/09/21/2696928.html">2. va_start和va_end使用详解(1)</a></li><li><a href="http://www.cnblogs.com/lr-ting/archive/2012/09/18/2691179.html">3. Linux下查看支持的信号列表(0)</a></li><li><a href="http://www.cnblogs.com/lr-ting/archive/2012/09/03/2666271.html">4. 删除".SVN"文件夹方法(0)</a></li><li><a href="http://www.cnblogs.com/lr-ting/archive/2012/08/24/2652482.html">5. linux 网络编程-基础篇(0)</a></li></ul></div>
+</div>
+
+<div class="catListView">
+<h3 class="catListTitle">推荐排行榜</h3>
+<div id="TopDiggPostsBlock"><ul><li><a href="http://www.cnblogs.com/lr-ting/archive/2012/09/23/2699278.html">1. 两行命令让你的win7也能当无线路由使用(11)</a></li><li><a href="http://www.cnblogs.com/lr-ting/archive/2012/09/21/2696928.html">2. va_start和va_end使用详解(1)</a></li><li><a href="http://www.cnblogs.com/lr-ting/archive/2012/09/03/2666271.html">3. 删除".SVN"文件夹方法(1)</a></li><li><a href="http://www.cnblogs.com/lr-ting/archive/2012/07/09/2576762.html">4. linux文件系统的移植－制作JFFS2文件系统(1)</a></li><li><a href="http://www.cnblogs.com/lr-ting/archive/2012/07/09/2576760.html">5. linux文件系统的移植－根文件系统制作(1)</a></li></ul></div>
+</div></div>
+			</div>
+			
+		</div><!--end: sideBarMain -->
+	</div><!--end: sideBar 侧边栏容器 -->
+	<div class="clear"></div>
+	</div><!--end: main -->
+	<div class="clear"></div>
+	<div id="footer">
+		
+<!--done-->
+Copyright ©2012 lr_ting
+	</div><!--end: footer -->
+</div><!--end: home 自定义的最大容器 -->
+<!--PageEndHtml Block Begin-->
+<div align="center"><a href="http://www.amazingcounters.com/"><img border="0" src="./基于ubuntu-2.6.35内核的SDIO-WiFi驱动移植 - lr_ting - 博客园_files/counter.php" alt="simple statistics"></a><br><a href="http://www.allonlinecoupons.com/st/econo-lodge/"><font color="#909090" size="2">Econo Lodge Coupons</font></a></div>
+<!--PageEndHtml Block End-->
+<script type="text/javascript" src="./基于ubuntu-2.6.35内核的SDIO-WiFi驱动移植 - lr_ting - 博客园_files/google-analytics.js"></script>
+
+
+<div class="SkipThisFixedPosition main-iframe-wrapper" id="main-iframe-wrapper" background="chrome-extension://ejpbbhjlbipncjklfjjaedaieimbmdda/screenShot.png" style="z-index: 2147483644; top: 0px; left: 0px; margin: 0px; line-height: 0; display: none !important; width: 100%; height: 34px; position: fixed;"></div><div class="SkipThisFixedPosition top-iframe-wrapper" style="width: 100%; height: 34px; position: fixed; z-index: 2147483647; left: 0px; display: none; top: 0px !important;"><iframe class="TOOLBAR_IFRAME" id="T_0.04043053928762674" frameborder="0" scrolling="no" style="width: 100%; height: 100%; min-height: 100%; line-height: 0; position: absolute; left: 0px; border-bottom-width: 1px; border-bottom-style: solid; border-bottom-color: rgba(0, 0, 0, 0.294118); margin: 0px !important; display: none; top: 0px !important;" src="./基于ubuntu-2.6.35内核的SDIO-WiFi驱动移植 - lr_ting - 博客园_files/container.htm"></iframe></div><div id="goog-gt-tt" class="goog-tooltip skiptranslate" dir="ltr" style="visibility: hidden; left: 184px; top: 3314px; display: none;"><div style="padding: 8px;"><div><div class="logo"><img src="./基于ubuntu-2.6.35内核的SDIO-WiFi驱动移植 - lr_ting - 博客园_files/translate-32.png" width="20" height="20"></div></div></div><div class="top" style="padding: 8px; float: left; width: 100%;"><h1 class="title gray">Văn bản gốc</h1></div><div class="middle" style="padding: 8px;"><div class="original-text">LIBS_p += -lcrypto</div></div><div class="bottom" style="padding: 8px;"><div class="activity-links"><span class="activity-link">Đóng góp bản dịch hay hơn</span><span class="activity-link"></span></div><div class="started-activity-container"><hr style="color: #CCC; background-color: #CCC; height: 1px; border: none;"><div class="activity-root"></div></div></div><div class="status-message" style="display: none; opacity: 0;"></div></div><div id="mainContainer_CTID"><div class="fixedDiv UrlGadgetsDiv" style="position: fixed; left: 0px; z-index: 2147483640; top: 34px !important;"></div><div class="fixedDiv SkipThisFixedPosition GeneralGadgetsDiv" style="position: fixed; left: 0px; z-index: 2147483644; width: 100%; top: 34px !important;"></div></div></body><span id="skype_highlighting_settings" display="none" autoextractnumbers="1"></span><object id="skype_plugin_object" location.href="http://www.cnblogs.com/lr-ting/archive/2012/07/05/2563326.html" location.hostname="www.cnblogs.com" style="position: absolute; visibility: hidden; left: -100px; top: -100px;" width="0" height="0" type="application/x-vnd.skype.click2call.chrome.5.7.0"></object></html>

@@ -1,0 +1,1096 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<!-- saved from url=(0075)http://blog.linuxconsulting.ro/2010/04/porting-wifi-drivers-to-android.html -->
+<html style="height: 725px; margin-top: 34px !important;" toolbar_fixed="1"><script src="./PaNiC Random Rant (or how we used to call it  .plan)  Porting WiFi drivers to Android_files/cb=gapi.loaded_1" async=""></script><script src="./PaNiC Random Rant (or how we used to call it  .plan)  Porting WiFi drivers to Android_files/cb=gapi.loaded_0" async=""></script><script>(function docInject_start() {
+        var toolbarHeight = 35,
+			windowHeightMinusToolbar = document.documentElement.clientHeight - toolbarHeight,
+			measurer;
+
+        window.addEventListener('load', function () {
+            window.toolbarLoad = true;
+
+            // measurer is used to calculate the height of the page's contents. The height is used to detect scrolling:
+            measurer = document.createElement('div');
+            measurer.id = "toolbar_measurer";
+            measurer.className = "SkipThisFixedPosition";
+            measurer.style.position = 'fixed';
+            measurer.style.bottom = '0';
+            document.body.appendChild(measurer);
+
+
+
+        }, false);
+        window.addEventListener('resize', function () {
+            // The HTML element's height should be the window height minus the toolbars' height:
+            document.documentElement.style.pixelHeight = getHeight();
+        }, false);
+
+        function getHeight() {
+
+            if (measurer) {
+                measurer.style.display = "block";
+                return Math.max(measurer.getClientRects()[0].bottom, 0);
+            }
+
+            return windowHeightMinusToolbar;
+        }
+
+
+
+
+        // If the HTML's height is queried by the page's scripts, return it without the toolbars' height
+
+
+
+        document.documentElement.__defineGetter__('clientHeight', function () {
+            return getHeight();
+        });
+        window.__defineGetter__('innerHeight', function () {
+            return getHeight();
+        });
+
+
+        // When client rects are requested by the page's scripts, they should be modified to reflect the toolbar(s):
+        var gc = HTMLElement.prototype.getClientRects;
+        HTMLElement.prototype.getClientRects = function () {
+            var res = gc.apply(this, arguments);
+            if (res && res.length)
+                res = res[0];
+            else
+                return null;
+
+
+            return [{
+                top: res.top - toolbarHeight,
+                left: res.left,
+                bottom: res.bottom - toolbarHeight,
+                right: res.right,
+                height: res.height,
+                width: res.width
+            }]
+        };
+        var gbc = HTMLElement.prototype.getBoundingClientRect;
+        HTMLElement.prototype.getBoundingClientRect = function () {
+            var res = gbc.apply(this, arguments);
+            res.topVal = res.top - toolbarHeight;
+            res.bottomVal = res.bottom - toolbarHeight;
+            res.__defineGetter__('top', function () {
+                return this.topVal;
+            });
+            res.__defineGetter__('bottom', function () {
+                return this.bottomVal;
+            });
+            return res;
+        };
+
+        var wrappedMouseMoveHandlers = [];
+
+        // Mouse move events are wrapped, so the pageY takes into account the toolbars' height (for mouseenter/mouseleave events, for example):
+        function wrapMouseMove(owner) {
+            var origAddEvent = owner.addEventListener,
+				origRemoveEvent = owner.removeEventListener;
+
+            owner.addEventListener = function (eventName, handler, useCapture) {
+                if (eventName == 'mousemove') {
+                    var wrapper = function (e) {
+                        e.stopPropagation();
+
+                        var ee = document.createEvent('MouseEvents');
+                        ee.initMouseEvent(e.type, e.cancelBubble, e.cancelable, e.view, e.detail, e.screenX, e.screenY, e.clientX, e.clientY - toolbarHeight, e.ctrlKey, e.altKey, e.shiftKey, e.metaKey, e.button, e.relatedTarget);
+                        ee.__defineGetter__("target", function () { return e.target });
+                        ee.__defineGetter__("srcElement", function () { return e.srcElement; });
+                        ee.__defineGetter__("toElement", function () { return e.toElement });
+                        handler.call(e.target, ee);
+                    };
+
+                    wrappedMouseMoveHandlers.push({ orig: handler, wrapped: wrapper });
+                    return origAddEvent.call(this, eventName, wrapper, useCapture);
+                } else origAddEvent.apply(this, arguments);
+            }
+
+            owner.removeEventListner = function (eventName, listener, useCapture) {
+                if (eventName === "mousemove") {
+                    for (var i = 0, count = wrappedMouseMoveHandlers.length; i < count; i++) {
+                        var handlerPair = wrappedMouseMoveHandlers[i];
+                        if (handlerPair.orig === listener) {
+                            wrappedMouseMoveHandlers.splice(i, 1);
+                            return origRemoveEvent.call(this, eventName, handlerPair.wrapped, useCapture);
+                        }
+                    }
+
+                    return origRemoveEvent.apply(this, arguments);
+                } else origRemoveEvent.apply(this, arguments);
+            }
+        }
+
+        if (window.location.href.indexOf("docs.google.com") === -1) {
+            wrapMouseMove(Node.prototype);
+            wrapMouseMove(window.constructor.prototype);
+        }
+    })()</script><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+
+
+<meta name="description" content="Nicu Pavel Linux page">
+
+<meta name="keywords" content="android programming linux imedia embedded arm"> 
+
+<meta name="author" content="Nicu Pavel PaNiC"> 
+
+<link rel="stylesheet" type="text/css" href="./PaNiC Random Rant (or how we used to call it  .plan)  Porting WiFi drivers to Android_files/default.css" media="screen">
+
+<title>PaNiC Random Rant (or how we used to call it: .plan): Porting WiFi drivers to Android</title>
+<script type="text/javascript">(function() { var a=window,b="jstiming",d="tick";var e=function(c){this.t={};this.tick=function(c,p,h){h=void 0!=h?h:(new Date).getTime();this.t[c]=[h,p]};this[d]("start",null,c)},f=new e;a.jstiming={Timer:e,load:f};if(a.performance&&a.performance.timing){var g=a.performance.timing,j=a[b].load,k=g.navigationStart,l=g.responseStart;0<k&&l>=k&&(j[d]("_wtsrt",void 0,k),j[d]("wtsrt_","_wtsrt",l),j[d]("tbsd_","wtsrt_"))}
+try{var m=null;a.chrome&&a.chrome.csi&&(m=Math.floor(a.chrome.csi().pageT),j&&0<k&&(j[d]("_tbnd",void 0,a.chrome.csi().startE),j[d]("tbnd_","_tbnd",k)));null==m&&a.gtbExternal&&(m=a.gtbExternal.pageT());null==m&&a.external&&(m=a.external.pageT,j&&0<k&&(j[d]("_tbnd",void 0,a.external.startE),j[d]("tbnd_","_tbnd",k)));m&&(a[b].pt=m)}catch(n){};a.tickAboveFold=function(c){var i=0;if(c.offsetParent){do i+=c.offsetTop;while(c=c.offsetParent)}c=i;750>=c&&a[b].load[d]("aft")};var q=!1;function r(){q||(q=!0,a[b].load[d]("firstScrollTime"))}a.addEventListener?a.addEventListener("scroll",r,!1):a.attachEvent("onscroll",r);
+ })();</script><script type="text/javascript">var a=navigator,b="userAgent",c="indexOf",f="&m=1",g="(^|&)m=",h="?",i="?m=1";function j(){var d=window.location.href,e=d.split(h);switch(e.length){case 1:return d+i;case 2:return 0<=e[1].search(g)?null:d+f;default:return null}}if(-1!=a[b][c]("Mobile")&&-1!=a[b][c]("WebKit")&&-1==a[b][c]("iPad")||-1!=a[b][c]("Opera Mini")||-1!=a[b][c]("IEMobile")){var k=j();k&&window.location.replace(k)};
+</script>
+<meta name="MSSmartTagsPreventParsing" content="true">
+<meta name="generator" content="Blogger">
+<link rel="icon" type="image/vnd.microsoft.icon" href="http://www.blogger.com/favicon.ico">
+<link rel="alternate" type="application/atom+xml" title="PaNiC Random Rant (or how we used to call it: .plan) - Atom" href="http://blog.linuxconsulting.ro/feeds/posts/default">
+<link rel="alternate" type="application/rss+xml" title="PaNiC Random Rant (or how we used to call it: .plan) - RSS" href="http://blog.linuxconsulting.ro/feeds/posts/default?alt=rss">
+<link rel="service.post" type="application/atom+xml" title="PaNiC Random Rant (or how we used to call it: .plan) - Atom" href="http://www.blogger.com/feeds/8939125534858322326/posts/default">
+<link rel="EditURI" type="application/rsd+xml" title="RSD" href="http://www.blogger.com/rsd.g?blogID=8939125534858322326">
+<link rel="alternate" type="application/atom+xml" title="PaNiC Random Rant (or how we used to call it: .plan) - Atom" href="http://blog.linuxconsulting.ro/feeds/7825643526087282750/comments/default">
+ <link rel="stylesheet" type="text/css" href="./PaNiC Random Rant (or how we used to call it  .plan)  Porting WiFi drivers to Android_files/50269083-blog_controls.css"> <link rel="stylesheet" type="text/css" href="./PaNiC Random Rant (or how we used to call it  .plan)  Porting WiFi drivers to Android_files/authorization.css">
+
+<!-- --><style type="text/css">@import url(http://www.blogger.com/static/v1/v-css/navbar/3334278262-classic.css);
+div.b-mobile {display:none;}
+</style>
+
+<style>.gc-bubbleDefault{text-align:left;padding:0 !important;margin:0 !important;border:0 !important;table-layout:auto !important}.gc-reset{border:0 !important;padding:0 !important;margin:0 !important;text-align:left}.pls-bubbleTop{border-bottom:1px solid #ccc !important}.pls-topTail,.pls-vertShimLeft,.pls-contentLeft{background-image:url(//ssl.gstatic.com/s2/oz/images/stars/po/bubblev1/border_3.gif) !important}.pls-topTail{background-repeat:repeat-x !important;background-position:bottom !important}.pls-vertShim{background-color:#fff !important;text-align:right}.pls-vertShimLeft{background-repeat:repeat-y !important;background-position:right !important;height:4px}.pls-vertShimRight{height:4px}.pls-confirm-container .pls-vertShim{background-color:#fff3c2 !important}.pls-contentWrap{background-color:#fff !important;position:relative !important;vertical-align:top}.pls-contentLeft{background-repeat:repeat-y;background-position:right;vertical-align:top}.pls-dropRight{background-image:url(//ssl.gstatic.com/s2/oz/images/stars/po/bubblev1/bubbleDropR_3.png) !important;background-repeat:repeat-y !important;vertical-align:top}.pls-vert,.pls-tailleft,.pls-dropTR .pls-dropBR,.pls-dropBL,.pls-vert img{vertical-align:top}.pls-dropBottom{background-image:url(//ssl.gstatic.com/s2/oz/images/stars/po/bubblev1/bubbleDropB_3.png) !important;background-repeat:repeat-x !important;width:100%;vertical-align:top}.pls-topLeft{background:inherit !important;text-align:right;vertical-align:bottom}.pls-topRight{background:inherit !important;text-align:left;vertical-align:bottom}.pls-bottomLeft{background:inherit !important;text-align:right}.pls-bottomRight{background:inherit !important;text-align:left;vertical-align:top}.pls-tailtop,.pls-tailright,.pls-tailbottom,.pls-tailleft{display:none;position:relative}.pls-tailbottom,.pls-tailtop,.pls-tailright,.pls-tailleft,.pls-dropTR,.pls-dropBR,.pls-dropBL{background-image:url(//ssl.gstatic.com/s2/oz/images/stars/po/bubblev1/bubbleSprite_3.png) !important;background-repeat:no-repeat}.pls-tailbottom{background-position:-23px 0}.pls-confirm-container .pls-tailbottom{background-position:-23px -10px}.pls-tailtop{background-position:-19px -20px}.pls-tailright{background-position:0 0}.pls-tailleft{background-position:-10px 0}.pls-tailtop{vertical-align:top}.gc-bubbleDefault td{line-height:0;font-size:0}.pls-topLeft img,.pls-topRight img,.pls-tailbottom{vertical-align:bottom}.pls-bottomLeft img,.bubbleDropTR,.pls-dropBottomL img,.pls-dropBottom img,.pls-dropBottomR img,.pls-bottomLeft{vertical-align:top}.pls-dropTR{background-position:0 -22px}.pls-dropBR{background-position:0 -27px}.pls-dropBL{background-position:0 -16px}.pls-spacertop,.pls-spacerright,.pls-spacerbottom,.pls-spacerleft{position:static !important}.pls-spinner{bottom:0;position:absolute;left:0;margin:auto;right:0;top:0}</style><script id="__isTpiViewExists"></script><script src="chrome-extension://lifbcibllhkdhoafpjfnlhfpfgnpldfl/document_iterator.js"></script><script src="chrome-extension://lifbcibllhkdhoafpjfnlhfpfgnpldfl/find_proxy.js"></script><script src="chrome-extension://lifbcibllhkdhoafpjfnlhfpfgnpldfl/get_html_text.js"></script><script src="chrome-extension://lifbcibllhkdhoafpjfnlhfpfgnpldfl/global_constants.js"></script><script src="chrome-extension://lifbcibllhkdhoafpjfnlhfpfgnpldfl/name_injection_builder.js"></script><script src="chrome-extension://lifbcibllhkdhoafpjfnlhfpfgnpldfl/number_injection_builder.js"></script><script src="chrome-extension://lifbcibllhkdhoafpjfnlhfpfgnpldfl/menu_injection_builder.js"></script><script src="chrome-extension://lifbcibllhkdhoafpjfnlhfpfgnpldfl/string_finder.js"></script><script src="chrome-extension://lifbcibllhkdhoafpjfnlhfpfgnpldfl/change_sink.js"></script><style>@media print { body { width: auto !important; } }</style><meta name="document_iterator.js"><meta name="find_proxy.js"><meta name="get_html_text.js"><meta name="global_constants.js"><meta name="name_injection_builder.js"><meta name="number_injection_builder.js"><meta name="menu_injection_builder.js"><meta name="string_finder.js"><meta name="change_sink.js"><script type="text/javascript" src="./PaNiC Random Rant (or how we used to call it  .plan)  Porting WiFi drivers to Android_files/saved_resource"></script><style type="text/css">.gssb_c{border:0;position:absolute;z-index:989}.gssb_e{border:1px solid #ccc;border-top-color:#d9d9d9;box-shadow:0 2px 4px rgba(0,0,0,0.2);-webkit-box-shadow:0 2px 4px rgba(0,0,0,0.2);cursor:default}.gssb_f{visibility:hidden;white-space:nowrap}.gssb_k{border:0;display:block;position:absolute;top:0;z-index:988}.gsdd_a{border:none!important}.gsib_a{width:100%;padding:4px 6px 0}.gsib_a,.gsib_b{vertical-align:top}.gssb_a{padding:0 7px}.gssb_a,.gssb_a td{white-space:nowrap;overflow:hidden;line-height:22px}#gssb_b{font-size:11px;color:#36c;text-decoration:none}#gssb_b:hover{font-size:11px;color:#36c;text-decoration:underline}.gssb_g{text-align:center;padding:8px 0 7px;position:relative}.gssb_h{font-size:15px;height:28px;margin:0.2em;-webkit-appearance:button}.gssb_i{background:#eee}.gss_ifl{visibility:hidden;padding-left:5px}.gssb_i .gss_ifl{visibility:visible}a.gssb_j{font-size:13px;color:#36c;text-decoration:none;line-height:100%}a.gssb_j:hover{text-decoration:underline}.gssb_l{height:1px;background-color:#e5e5e5}.gssb_m{color:#000;background:#fff}.gsq_a{padding:0}.gscsep_a{display:none}.gsfe_a{border:1px solid #b9b9b9;border-top-color:#a0a0a0;box-shadow:inset 0px 1px 2px rgba(0,0,0,0.1);-moz-box-shadow:inset 0px 1px 2px rgba(0,0,0,0.1);-webkit-box-shadow:inset 0px 1px 2px rgba(0,0,0,0.1);}.gsfe_b{border:1px solid #4d90fe;outline:none;box-shadow:inset 0px 1px 2px rgba(0,0,0,0.3);-moz-box-shadow:inset 0px 1px 2px rgba(0,0,0,0.3);-webkit-box-shadow:inset 0px 1px 2px rgba(0,0,0,0.3);}.gscb_a{display:inline-block;font:27px/13px arial,sans-serif}.gsst_a .gscb_a{color:#a1b9ed;cursor:pointer}.gsst_a:hover .gscb_a,.gsst_a:focus .gscb_a{color:#36c}.gsst_a{display:inline-block}.gsst_a{cursor:pointer;padding:0 4px}.gsst_a:hover{text-decoration:none!important}.gsst_b{font-size:16px;padding:0 2px;user-select:none;-webkit-user-select:none;white-space:nowrap}.gsst_e{opacity:0.55;}.gsst_a:hover .gsst_e,.gsst_a:focus .gsst_e{opacity:0.72;}.gsst_a:active .gsst_e{opacity:1;}.gsst_f{background:white;text-align:left}.gsst_g{background-color:white;border:1px solid #ccc;border-top-color:#d9d9d9;box-shadow:0 2px 4px rgba(0,0,0,0.2);-webkit-box-shadow:0 2px 4px rgba(0,0,0,0.2);margin:-1px -3px;padding:0 6px}.gsst_h{background-color:white;height:1px;margin-bottom:-1px;position:relative;top:-1px}.gssb_a{padding:0 7px}.gssb_e{border:0}.gssb_l{margin:5px 0}.gssb_c .gsc-completion-container{position:static}.gssb_c{z-index:5000}.gsc-completion-container table{background:transparent;font-size:inherit;font-family:inherit}.gssb_c > tbody > tr,.gssb_c > tbody > tr > td,.gssb_d,.gssb_d > tbody > tr,.gssb_d > tbody > tr > td,.gssb_e,.gssb_e > tbody > tr,.gssb_e > tbody > tr > td{padding:0;margin:0;border:0}.gssb_a table,.gssb_a table tr,.gssb_a table tr td{padding:0;margin:0;border:0}</style><link rel="stylesheet" type="text/css" href="chrome-extension://ejpbbhjlbipncjklfjjaedaieimbmdda/css/about.css"><script type="text/javascript" src="./PaNiC Random Rant (or how we used to call it  .plan)  Porting WiFi drivers to Android_files/search.I.js"></script></head>
+
+
+
+<body class="backgroundPositionTuned"><script type="text/javascript">
+    function setAttributeOnload(object, attribute, val) {
+      if(window.addEventListener) {
+        window.addEventListener('load',
+          function(){ object[attribute] = val; }, false);
+      } else {
+        window.attachEvent('onload', function(){ object[attribute] = val; });
+      }
+    }
+  </script>
+<div id="navbar-iframe-container"><iframe allowtransparency="true" frameborder="0" hspace="0" marginheight="0" marginwidth="0" scrolling="no" style="" tabindex="0" vspace="0" width="100%" id="navbar-iframe" name="navbar-iframe" src="./PaNiC Random Rant (or how we used to call it  .plan)  Porting WiFi drivers to Android_files/navbar.htm"></iframe></div>
+<script type="text/javascript" src="./PaNiC Random Rant (or how we used to call it  .plan)  Porting WiFi drivers to Android_files/plusone.js" gapi_processed="true"></script>
+<script type="text/javascript">
+        gapi.load("iframes-styles-bubble", function() {
+          if (window.iframes && iframes.open) {
+            iframes.open(
+                '//www.blogger.com/navbar.g?targetBlogID\758939125534858322326\46blogName\75PaNiC+Random+Rant+(or+how+we+used+to+...\46publishMode\75PUBLISH_MODE_HOSTED\46navbarType\75BLUE\46layoutType\75CLASSIC\46searchRoot\75http://blog.linuxconsulting.ro/search\46blogLocale\75en_US\46v\0752\46homepageUrl\75http://blog.linuxconsulting.ro/\46vt\07512535781708465964',
+                {
+                  container: "navbar-iframe-container",
+                  id: "navbar-iframe"
+                },
+                {
+                });
+          }
+        });
+      </script>
+
+
+
+<div class="container">
+
+	<div class="header">
+
+	  <div class="title">
+
+	    <h1>LinuxConsulting</h1><div class="headerwhite"> - Nicu Pavel personal page</div>
+
+	  </div>
+
+		<div class="navigation">
+
+			<a href="http://www.linuxconsulting.ro/index.html">Projects</a>
+
+			<a href="http://blog.linuxconsulting.ro/">Random Rant</a>
+
+			<a href="http://www.linuxconsulting.ro/about.html">About me</a>
+
+
+			<div class="clearer"><span></span></div>
+
+		</div>
+
+	</div>
+
+
+
+	<div class="main">
+		<div class="content">
+		<!-- PaNiC Blog Title -->
+		 	<h1><a href="http://blog.linuxconsulting.ro/">PaNiC Random Rant (or how we used to call it: .plan)</a></h1>
+
+			
+			<div class="content"><br>
+			<!-- Begin .post -->
+			<a name="7825643526087282750"></a>
+     
+			
+			 <h2>
+			  
+			  Porting WiFi drivers to Android
+			  
+			 </h2>
+			 <div class="post-info">by Nicu Pavel on
+			  <!-- Nicu Pavel on -->
+			 
+			   11 August 2010
+			 
+			 </div>
+			 <br>
+    			
+
+			<p> 
+				<i>Update(19/05/2011): Verify validity against Gingerbread.</i><br>
+<i> Update (11/08/2010): Updated patch to fix the loading of awext driver at run time. <br>
+Added STOP and RESTART commands. </i><br>
+<br>
+For <a href="http://www.mini-box.com/pico-SAM9G45-X"> mini-box.com picoPC </a>  we want to support several USB and miniPCI WiFi dongles, this guide provides a step by step explanation of what's involved in adding a new wifi driver and making wifi work in a custom Android build &nbsp;(this guide was written for android 2.1 but should be applicable to previous android releases and hopefully future releases). <br>
+<b> Contents</b><br>
+0. Understand how Android WiFi works. <br>
+1. Enable building of wpa_supplicant in your BoardConfig.mk <br>
+2. (Optional) Enable debug for wpa_supplicant. <br>
+3. Provide a proper wpa_supplicant.conf for your device  <br>
+4. Have the correct paths and permissions created from init.rc <br>
+5. Make sure your wpa_supplicant and dhcpcd (optional) are starting from init.rc&nbsp;  <br>
+6. Provide your driver either as a module or built in kernel and proper kernel support for it and modify Android source code accordingly. <br>
+7. Provide a firmware if your module needs it. <br>
+8. Make your driver work with Android custom wpa_supplicant commands and SIOCSIWPRIV ioctl <br>
+<br>
+Now onto details. <br>
+<br>
+<b> 0. Understand how Android WiFi works.</b><br>
+Android uses a modified <i> wpa_supplicant</i>  (<file> external/wpa_supplicant</file> ) daemon for wifi support which is controlled through a socket by  <file> hardware/libhardware_legacy/wifi/wifi.c </file>  (WiFiHW) that gets controlled from Android UI through  <i> android.net.wifi </i>  package from  <file> frameworks/base/wifi/java/android/net/wifi/ </file>  and it's corresponding jni implementation in  <file> frameworks/base/core/jni/android_net_wifi_Wifi.cpp </file>  Higher level network management is done in  <file> frameworks/base/core/java/android/net </file> <br>
+<br>
+<b> 1. Enable building of wpa_supplicant in your BoardConfig.mk</b><br>
+This is by simply adding: <codei> BOARD_WPA_SUPPLICANT_DRIVER := WEXT</codei> to your <file> BoardConfig.mk</file> . This will set&nbsp;<codei> WPA_BUILD_SUPPLICANT</codei> to true in <file>external/wpa_supplicant/Android.mk</file>  enabling building of <file> driver_wext.c</file><br>
+If you have a custom wpa_supplicant driver (like madwifi or my custom android private commands emulation - see last paragraph) you can replace WEXT with AWEXT or your driver name (MADWIFI, PRISM etc). <br>
+<br>
+<b> 2. (Optional) Enable debug for wpa_supplicant. </b> <br>
+By default wpa_supplicant is set to  <codei> MSG_INFO </codei>  that doesn't tell much. <br>
+To enable more messages:  <br>
+&nbsp; 2.1 modify  <file> common.c </file>  and set  <codei> wpa_debug_level = MSG_DEBUG </codei>  <br>
+&nbsp; 2.2 modify  <file> common.h </file>  and change  <codei> #define wpa_printf </codei> from <codei> if ((level) &gt;= MSG_INFO) </codei>  to  <codei> if ((level) &gt;= MSG_DEBUG) </codei><br>
+<br>
+<b> 3. Provide a proper wpa_supplicant.conf for your device </b> <br>
+Providing a wpa_supplicant.conf it's important because the control socket for android is specified in this file (ctrl_interface= ). This file should be copied by your  <file> AndroidBoard.mk </file>  to  <codei> $(TARGET_OUT_ETC)/wifi </codei>  (usually  <file> /system/etc/wifi/wpa_supplicant.conf </file> ). This location will be used on wpa_supplicant service from init.rc.  <br>
+There are two different ways in which wpa_supplicant can be configured, one is to use a "private" socket in android namespace, created by  <codei> socket_local_client_connect() </codei>  function in  <file> wpa_ctrl.c </file>  and another is by using a standard unix socket. <br>
+<br>
+Minimum required config options in wpa_supplicant.conf : <br>
+<b> - Android private socket </b> <br>
+<codei> <br>
+ctrl_interface=wlan0 <br>
+update_config=1 <br>
+</codei> <br>
+<b> - Unix standard socket </b><br>
+<codei><br>
+ctrl_interface=DIR=/data/system/wpa_supplicant GROUP=wifi <br>
+update_config=1 <br>
+</codei> <br>
+<br>
+Depending on your driver you might also want to add: <br>
+ap_scan=1 <br>
+<br>
+If you have AP association problems with should change to  <codei> ap_scan=0 </codei>  to let the driver do the association instead of wpa_supplicant. <br>
+If you want to let wpa_supplicant connect to non-WPA or open wireless networks (by default it skips these kind) add: <br>
+<br>
+<codei>        <br>
+network={ <br>
+key_mgmt=NONE <br>
+} <br>
+</codei> <br>
+<br>
+<b> 4. Have the correct permissions and paths created from init.rc </b> <br>
+Incorrect permisions will result in wpa_supplicant not being able to create/open the control socket and  <file> libhardware_legacy/wifi/wifi.c </file>  won't connect. <br>
+Since Google modified wpa_supplicant to run as  <b> wifi </b>  user/group the directory structure and file ownership should belong to wifi user/group (see  <codei> os_program_init() </codei>  function in  <file> wpa_supplicant/os_unix.c </file> ).<br>
+<br>
+Otherwise errors like: <br>
+E/WifiHW&nbsp; (&nbsp; ): Unable to open connection to supplicant on "/data/system/wpa_supplicant/wlan0": No such file or directory will appear. <br>
+<br>
+Also wpa_supplicant.conf should belong to wifi user/group because wpa_supplicant will want to modify this file. If your system has /system as read-only use a location like /data/misc/wifi/wpa_supplicant.conf and modify wpa_supplicant service in init.rc with new location. <br>
+Make sure the paths are correctly created in init.rc: <br>
+<br>
+<codei><br>
+mkdir /system/etc/wifi 0770 wifi wifi  <br>
+chmod 0770 /system/etc/wifi <br>
+chmod 0660 /system/etc/wifi/wpa_supplicant.conf <br>
+chown wifi wifi /system/etc/wifi/wpa_supplicant.conf <br>
+#wpa_supplicant control socket for android wifi.c (android private socket) <br>
+mkdir /data/misc/wifi 0770 wifi wifi <br>
+mkdir /data/misc/wifi/sockets 0770 wifi wifi <br>
+chmod 0770 /data/misc/wifi <br>
+chmod 0660 /data/misc/wifi/wpa_supplicant.conf <br>
+chown wifi wifi /data/misc/wifi <br>
+chown wifi wifi /data/misc/wifi/wpa_supplicant.conf <br>
+</codei> <br>
+<br>
+If you use a <b>  Unix standard socket </b>  in wpa_supplicant.conf (see above) add: <br>
+<codei><br>
+# wpa_supplicant socket (unix socket mode) <br>
+mkdir /data/system/wpa_supplicant 0771 wifi wifi <br>
+chmod 0771 /data/system/wpa_supplicant <br>
+chown wifi wifi /data/system/wpa_supplicant <br>
+</codei>       <br>
+Do not add these if you use Android private socket because it will make wpa_supplicant non-functional, because  <file> hardware/libhardware_legacy/wifi/wifi.c check for existence of the  <file> /data/system/wpa_supplicant </file>  folder and will pass a wrong interface name to  <codei> wpa_ctrl_open() </codei>  function. </file>   <br>
+<br>
+<b> 5. Make sure your wpa_supplicant and dhcpcd are starting from init.rc </b> <br>
+<br>
+For wpa_supplicant the init.rc startup like should be depending on which path you chosen:  <br>
+<b> - Android private socket: </b> <br>
+<codei><br>
+service wpa_supplicant /system/bin/wpa_supplicant -dd -Dwext -iwlan0 -c /system/etc/wifi/wpa_supplicant.conf <br>
+socket wpa_wlan0 dgram 660 wifi wifi <br>
+group system wifi inet <br>
+disabled <br>
+oneshot <br>
+</codei> <br>
+<b> - Unix standard socket: </b> <br>
+<codei><br>
+service wpa_supplicant /system/bin/wpa_supplicant -dd -Dwext -iwlan0 -c /system/etc/wifi/wpa_supplicant.conf <br>
+group system wifi inet <br>
+disabled <br>
+oneshot <br>
+</codei>  <br>
+If your wifi driver creates a wifi interface with other name than  <codei> wlan0 </codei>  you will have to modify the above line accordingly. <br>
+You also should have dhcpcd starting from init.rc <br>
+<codei><br>
+service dhcpcd /system/bin/dhcpcd wlan0 <br>
+group system dhcp <br>
+disabled <br>
+oneshot <br>
+</codei>     <br>
+<br>
+Newer AOSP versions after Gingerbread use dhcpcd_wlan0 as service name.<br>
+<br>
+<b> 6. Provide your driver either as a module or built in kernel and proper kernel support for it. </b> <br>
+&nbsp;First make sure that&nbsp;  <span class="code" dir="ltr"> CONFIG_PACKET and CONFIG_NET_RADIO</span> (wireless extensions)   &nbsp;are enabled in your kernel. The driver can be built as module (default android way) or built in kernel (if you want to rely in kernel auto probing to support multiple driver eg. USB wifi) but will require source code modifications (see below).  <br>
+<b> &nbsp;- As kernel module: </b> <br>
+&nbsp;&nbsp; Define in your  <file> BoardConfig.mk </file> : <br>
+&nbsp;&nbsp; 1.  <codei> WIFI_DRIVER_MODULE_PATH :=  </codei>  path to the module to be loaded <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; You need to specify module name in that path too, usually should look something like /system/lib/modules/wlan.ko <br>
+&nbsp;&nbsp; 2.&nbsp;  <codei> WIFI_DRIVER_MODULE_NAME:= </codei>  the name of the network interface  that the driver creates, for example wlan0  <br>
+&nbsp;&nbsp; 3.  <codei> WIFI_DRIVER_MODULE_ARG:= </codei>  any arguments that you want to pass to the driver on insmod, for example nohwcrypt <br>
+&nbsp;&nbsp;  <br>
+&nbsp;&nbsp; Make sure you copy your kernel module when building android to the correct location.  <br>
+<b> - As built in kernel: </b> <br>
+&nbsp; - First  <file> init.rc </file>  needs to be modified to inform  <file> hardware/libhardware_legacy/wifi/wifi.c </file>  about the name of the interface, that the driver&nbsp; is already loaded and set the status of wpa_supplicant to running:  <br>
+<codei><br>
+setprop wifi.interface "wlan0" <br>
+setprop wlan.driver.status "ok" <br>
+</codei> <br>
+<br>
+Do  <b> NOT </b>  add  <codei> setprop init.svc.wpa_supplicant "running" </codei>  as I previously mentioned as it will prevent wpa_supplicant from starting from init. <br>
+&nbsp;- Secondly   <file> hardware/libhardware_legacy/wifi/wifi.c </file>  need to be modified so the functions  <codei> insmod() </codei>  and  <codei> rmmod() </codei>   <codei> return 0 </codei>  (simply add  <codei> return 0; </codei>  as the first line in functions since they are not needed when driver is built in kernel) and return before checking for  <file> /proc/modules </file>  in&nbsp;  <codei> check_driver_loaded() </codei>  function. <br>
+You might encounter problems with WifiHW module not being able to connect to wpa_supplicant socket even with the correct permisions. Try to turn off / turn on Wifi from the GUI. <br>
+<br>
+<b> &nbsp;7. Provide a firmware if your driver needs it </b> <br>
+<br>
+If your driver needs a firmware you will have to copy this firmware file to  <file> /etc/firmware </file>  on your android build. Android doesn't use a standard hotplug binary (although there is an implementation available on  <a href="http://www.android-x86.org/"> android-x86 </a>   <file> system/code/toolbox/hotplug.c </file> ) instead the init process takes care of firmware events and loads the firmware file from  <file> /etc/firmware </file>  (see:  <file> system/core/init/devices.c  </file>   <codei> handle_firmware_event() </codei>  function). <br>
+Firmware file name is defined by the driver and might also contain a folder like: RTL8192SU/rtl8192sfw.bin, entire file path should be available in  <file> /etc/firmware </file> <br>
+<br>
+<b> 8. Make your driver work with Android custom wpa_supplicant commands and SIOCSIWPRIV ioctl. </b> <br>
+<br>
+&nbsp;Android uses  <codei> SIOCSIWPRIV </codei>  ioctl to send commands to modify driver behaviour  and receive information like signal strength, mac address of the AP, link speed etc. This ioctl is usually not implemented in any known wireless drivers except bcm4329 which is in google  <a href="http://android.git.kernel.org/?p=kernel/msm.git;a=tree;f=drivers/net/wireless/bcm4329;h=a10842ca196951bc3399a8fa4cff09dce4ac305f;hb=refs/heads/android-msm-2.6.32"> msm kernel branch </a> . <br>
+The errors from not having this ioctl implemented will look like: <br>
+E/wpa_supplicant(&nbsp; ): wpa_driver_priv_driver_cmd failed wpa_driver_priv_driver_cmd RSSI len = 4096&nbsp; <br>
+E/wpa_supplicant(&nbsp; ): wpa_driver_priv_driver_cmd failed&nbsp; <br>
+D/wpa_supplicant(&nbsp; ): wpa_driver_priv_driver_cmd LINKSPEED len = 4096 <br>
+E/wpa_supplicant(&nbsp; ): wpa_driver_priv_driver_cmd failed&nbsp; <br>
+I/wpa_supplicant(&nbsp; ): CTRL-EVENT-DRIVER-STATE HANGED <br>
+<br>
+After 4, WEXT_NUMBER_SEQUENTIAL_ERRORS errors, android will abort using the device. <br>
+<br>
+To quickly test your wifi from interface you can disable error checking in  <file> external/wpa_supplicant/driver_wext.c </file>  by simply making  <codei> ret = 0; </codei>  in  <codei> wpa_driver_priv_driver_cmd() </codei>  function after the SIOCSIWPRIV ioctl call. This will make all access points in android UI appear without signal or MAC address. <br>
+To proper implement the ioctl you will need to modify your kernel driver to reply to SIOCSIWPRIV ioctl with RSSI (signal strength) and MACADDR commands being the most important. <br>
+A better way is to add a custom driver_xxx.c to google  <file> external/wpa_supplicant/ </file>  implementing  <codei> wpa_driver_priv_driver_cmd() </codei>  function that will take care of RSSI, MACADDR and others, through calls to SIOCGIWSTATS, SIOCGIFHWADDR ioctls, with the rest of the functions being called from driver_wext.c. <br>
+Below is a link to a patch for wpa_supplicant that I did for  <a href="http://www.mini-box.com/pico-SAM9G45-X"> mini-box.com picoPC </a>  Android build. It creates a new driver  <codei> awext </codei>  which "emulates" android driver commands using wireless extensions ioctls. <br>
+<br>
+How to use the new driver: <br>
+<br>
+1. In your  <file> BoardConfig.mk </file>  define:&nbsp; <codei> BOARD_WPA_SUPPLICANT_DRIVER := AWEXT </codei>  <br>
+2. Change  <file> init.rc </file>  wpa_supplicant service command line by replacind  <codei> -Dwext </codei>  with  <codei> -Dawext </codei> <br>
+<br>
+AWEXT driver patch download: &nbsp; <a href="http://www.linuxconsulting.ro/android/patches/android_wext_emulation_driver_awext.patch"> android_wext_emulation_driver_awext.patch </a><br>
+For Gingerbread patches see the post above.</p><p class="blogger-labels">Labels: <a rel="tag" href="http://blog.linuxconsulting.ro/search/label/android">android</a>, <a rel="tag" href="http://blog.linuxconsulting.ro/search/label/wifi">wifi</a>, <a rel="tag" href="http://blog.linuxconsulting.ro/search/label/wpa_supplicant">wpa_supplicant</a></p>
+			<p></p>
+			<p class="descr">
+			
+			
+			<span class="item-control blog-admin pid-628541820"><a style="border:none;" href="http://www.blogger.com/post-edit.g?blogID=8939125534858322326&postID=7825643526087282750&from=pencil" title="Edit Post"><img class="icon-action" alt="" src="./PaNiC Random Rant (or how we used to call it  .plan)  Porting WiFi drivers to Android_files/icon18_edit_allbkg.gif" height="18" width="18"></a></span>
+			
+			<!-- End .post -->
+
+			<!-- Begin #comments -->
+			
+			<a name="comments"></a>
+			</p><h4>49 Comments:</h4>
+			<dl id="comments-block">
+			
+ 			 <dt class="comment-data" id="c000000045"><a name="c6727735721611500777"></a>
+				At 
+    <a class="comment-data-link" href="http://blog.linuxconsulting.ro/2010/04/porting-wifi-drivers-to-android.html#c6727735721611500777" title="comment permalink"> May 10, 2010 8:23 AM </a>,
+				<span style="line-height:16px" class="comment-icon blogger-comment-icon"><img src="./PaNiC Random Rant (or how we used to call it  .plan)  Porting WiFi drivers to Android_files/b16-rounded.gif" alt="Blogger" style="display:inline;"></span>&nbsp;<a href="http://www.blogger.com/profile/12636069372914942443" rel="nofollow">yonathana</a> said...
+			 </dt>
+			 <dd class="comment-body">
+				<p>
+				Hi, <br>   Was trying the same but have been facing some errors. E/WifiHW  (  ): Unable to open connection to supplicant on "/data/system/wpa_supplicant/wlan0"<br>Even though i have added permissions as mentioned.  Would like to compare my files with yours. Would you mind sharing a copy of the modified files ? <br>Thanks <br>Yonathana
+				</p>
+				<span class="item-control blog-admin pid-1484639071"><a style="border:none;" href="http://www.blogger.com/delete-comment.g?blogID=8939125534858322326&postID=6727735721611500777" title="Delete Comment"><span class="delete-comment-icon">&nbsp;</span></a></span>
+			 </dd>
+			
+ 			 <dt class="comment-data" id="c000000045"><a name="c9131956034525972550"></a>
+				At 
+    <a class="comment-data-link" href="http://blog.linuxconsulting.ro/2010/04/porting-wifi-drivers-to-android.html#c9131956034525972550" title="comment permalink"> May 10, 2010 9:36 AM </a>,
+				<span style="line-height:16px" class="comment-icon blogger-comment-icon"><img src="./PaNiC Random Rant (or how we used to call it  .plan)  Porting WiFi drivers to Android_files/b16-rounded.gif" alt="Blogger" style="display:inline;"></span>&nbsp;<a href="http://www.blogger.com/profile/08232153615038357301" rel="nofollow">panic</a> said...
+			 </dt>
+			 <dd class="comment-body">
+				<p>
+				Add a chown wifi wifi on the folders and verify with ls -l /data/system/ on console. I placed the files here: <br>http://www.linuxconsulting.ro/android/files/wifi/
+				</p>
+				<span class="item-control blog-admin pid-628541820"><a style="border:none;" href="http://www.blogger.com/delete-comment.g?blogID=8939125534858322326&postID=9131956034525972550" title="Delete Comment"><span class="delete-comment-icon">&nbsp;</span></a></span>
+			 </dd>
+			
+ 			 <dt class="comment-data" id="c000000045"><a name="c1899004741109220506"></a>
+				At 
+    <a class="comment-data-link" href="http://blog.linuxconsulting.ro/2010/04/porting-wifi-drivers-to-android.html#c1899004741109220506" title="comment permalink"> May 10, 2010 12:41 PM </a>,
+				<span style="line-height:16px" class="comment-icon blogger-comment-icon"><img src="./PaNiC Random Rant (or how we used to call it  .plan)  Porting WiFi drivers to Android_files/b16-rounded.gif" alt="Blogger" style="display:inline;"></span>&nbsp;<a href="http://www.blogger.com/profile/08232153615038357301" rel="nofollow">panic</a> said...
+			 </dt>
+			 <dd class="comment-body">
+				<p>
+				Also try to turnoff/turnon wifi, maybe wpa_supplicant hasn't yet created the socket. I've seen this on my build.<br>You should see something similar to this in logcat (if you enabled wpa_supplicant debug):<br><br>D/wpa_supplicant(  843): Initializing interface 'wlan0' conf '/system/etc/wifi/wpa_supplicant.conf' driver 'awext' ctrl_interface 'N/A' bridge 'N/A'<br>D/wpa_supplicant(  843): Configuration file '/system/etc/wifi/wpa_supplicant.conf' -&gt; '/system/etc/wifi/wpa_supplicant.conf'                        <br>D/wpa_supplicant(  843): Reading configuration file '/system/etc/wifi/wpa_supplicant.conf'                                                          <br>D/wpa_supplicant(  843): ctrl_interface='wlan0'
+				</p>
+				<span class="item-control blog-admin pid-628541820"><a style="border:none;" href="http://www.blogger.com/delete-comment.g?blogID=8939125534858322326&postID=1899004741109220506" title="Delete Comment"><span class="delete-comment-icon">&nbsp;</span></a></span>
+			 </dd>
+			
+ 			 <dt class="comment-data" id="c000000045"><a name="c2319396989176573491"></a>
+				At 
+    <a class="comment-data-link" href="http://blog.linuxconsulting.ro/2010/04/porting-wifi-drivers-to-android.html#c2319396989176573491" title="comment permalink"> May 10, 2010 5:24 PM </a>,
+				<span style="line-height:16px" class="comment-icon blogger-comment-icon"><img src="./PaNiC Random Rant (or how we used to call it  .plan)  Porting WiFi drivers to Android_files/b16-rounded.gif" alt="Blogger" style="display:inline;"></span>&nbsp;<a href="http://www.blogger.com/profile/12636069372914942443" rel="nofollow">yonathana</a> said...
+			 </dt>
+			 <dd class="comment-body">
+				<p>
+				This is what i did panic : drop both your files in the respective dir and cross check in the rfs if they are same <br>Check permissions of <br>s -l /data/system<br>-rw-rw-r-- system   system      35326 2000-01-01 00:00 packages.xml<br>-rw------- system   system          8 2000-01-01 00:01 syncmanager.prefs<br>drwxrwx--x system   system            2000-01-01 00:00 registered_services<br>drwxrwxrwx wifi     wifi              2000-01-01 00:00 wpa_supplicant<br>-rw------- system   system       4096 2000-01-01 00:00 entropy.dat<br>-rw------- system   system        171 2000-01-01 00:00 wallpaper_info.xml<br>-rw-rw---- system   system      16384 2000-01-01 00:00 accounts.db<br>-rw------- system   system        604 2000-01-01 00:00 batterystats.bin<br>drwx------ system   system            2000-01-01 00:00 usagestats<br>-rw------- system   system         64 2000-01-01 00:00 appwidgets.xml<br><br><br>I/ActivityManager(  802): Starting activity: Intent { act=android.intent.action.MAIN cmp=com.android.settings/.WirelessSettings }<br>D/dalvikvm(  802): GC freed 9763 objects / 499352 bytes in 96ms<br>I/ActivityManager(  802): Displayed activity com.android.settings/.WirelessSettings: 556 ms (total 556 ms)<br>W/WifiHW  (  802): Could not open /proc/modules: No such file or directory<br>I/StatusBarPolicy(  802): received intent android.net.wifi.WIFI_STATE_CHANGED<br>D/SettingsWifiEnabler(  985): Received wifi state changed from Disabled to Enabling<br>D/WifiService(  802): ACTION_BATTERY_CHANGED pluggedType: 1<br>E/WifiHW  (  802): Unable to open connection to supplicant on "/data/system/wpa_supplicant/wlan0": No such file or directory<br>D/SettingsWifiEnabler(  985): Received wifi state changed from Enabling to Enabled<br>I/StatusBarPolicy(  802): received intent android.net.wifi.WIFI_STATE_CHANGED<br>E/WifiHW  (  802): Unable to open connection to supplicant on "/data/system/wpa_supplicant/wlan0": No such file or directory<br>E/WifiHW  (  802): Unable to open connection to supplicant on "/data/system/wpa_supplicant/wlan0": No such file or directory<br>I/StatusBarPolicy(  802): received intent android.intent.action.TIME_TICK<br>E/WifiHW  (  802): Unable to opeinit: no such service 'dhcpcdwlan0'<br>n connection to supplicant on "/data/system/wpa_supplicant/wlan0": No such file or directory<br>V/WifiStateTracker(  802): Supplicant died unexpectedly<br>E/WifiStateTracker(  802): Could not stop DHCP<br>D/NetworkStateTracker(  802): setDetailed state, old =IDLE and new state=DISCONNECTED<br>D/ConnectivityService(  802): ConnectivityChange for WIFI: DISCONNECTED/DISCONNECTED<br>I/EthernetService(  802): setEthState from 2 to 2<br>init: no such service 'dhcpcdwlan0'<br>D/SettingsWifiEnabler(  985): Received wifi state changed from Enabled to Disabling<br>I/StatusBarPolicy(  802): received intent android.net.wifi.supplicant.CONNECTION_CHANGE<br>I/StatusBarPolicy(  802): received intent android.net.wifi.WIFI_STATE_CHANGED<br><br>Am i at loss of ideas, Any clues what could be wrong ?
+				</p>
+				<span class="item-control blog-admin pid-1484639071"><a style="border:none;" href="http://www.blogger.com/delete-comment.g?blogID=8939125534858322326&postID=2319396989176573491" title="Delete Comment"><span class="delete-comment-icon">&nbsp;</span></a></span>
+			 </dd>
+			
+ 			 <dt class="comment-data" id="c000000045"><a name="c8007235289406902519"></a>
+				At 
+    <a class="comment-data-link" href="http://blog.linuxconsulting.ro/2010/04/porting-wifi-drivers-to-android.html#c8007235289406902519" title="comment permalink"> May 10, 2010 5:32 PM </a>,
+				<span style="line-height:16px" class="comment-icon blogger-comment-icon"><img src="./PaNiC Random Rant (or how we used to call it  .plan)  Porting WiFi drivers to Android_files/b16-rounded.gif" alt="Blogger" style="display:inline;"></span>&nbsp;<a href="http://www.blogger.com/profile/12636069372914942443" rel="nofollow">yonathana</a> said...
+			 </dt>
+			 <dd class="comment-body">
+				<p>
+				Also when i do a command line init as soon as system boots <br>wpa_supplicant -iwlan0 -c/system/etc/wifi/wpa_supplicant.conf -ddI/StatusBarPolicy(  802): received intent android.intent.action.TIME_TICK<br><br>D/wpa_supplicant(  989): Initializing interface 'wlan0' conf '/system/etc/wifi/wpa_supplicant.conf' driver 'default' ctrl_interface 'N/A' bridge 'N/A'<br>D/wpa_supplicant(  989): Configuration file '/system/etc/wifi/wpa_supplicant.conf' -&gt; '/system/etc/wifi/wpa_supplicant.conf'<br>D/wpa_supplicant(  989): Reading configuration file '/system/etc/wifi/wpa_supplicant.conf'<br>E/wpa_supplicant(  989): Failed to read or parse configuration '/system/etc/wifi/wpa_supplicant.conf'.<br>D/wpa_supplicant(  989): Failed to add interface wlan0<br>D/wpa_supplicant(  989): Cancelling scan request<br>D/wpa_supplicant(  989): Cancelling authentication timeout<br># I/StatusBarPolicy(  802): received intent android.intent.action.TIME_TICK<br><br># cat /system/etc/wifi/wpa_supplicant.conf<br>ctrl_interface=DIR=/data/system/wpa_supplicant GROUP=wifi<br>update_config=1<br><br> <br><br>This is what i see ? Wonder why the wpa_supplicant .conf is not being parsed
+				</p>
+				<span class="item-control blog-admin pid-1484639071"><a style="border:none;" href="http://www.blogger.com/delete-comment.g?blogID=8939125534858322326&postID=8007235289406902519" title="Delete Comment"><span class="delete-comment-icon">&nbsp;</span></a></span>
+			 </dd>
+			
+ 			 <dt class="comment-data" id="c000000045"><a name="c8850938194393631228"></a>
+				At 
+    <a class="comment-data-link" href="http://blog.linuxconsulting.ro/2010/04/porting-wifi-drivers-to-android.html#c8850938194393631228" title="comment permalink"> May 10, 2010 5:57 PM </a>,
+				<span style="line-height:16px" class="comment-icon blogger-comment-icon"><img src="./PaNiC Random Rant (or how we used to call it  .plan)  Porting WiFi drivers to Android_files/b16-rounded.gif" alt="Blogger" style="display:inline;"></span>&nbsp;<a href="http://www.blogger.com/profile/08232153615038357301" rel="nofollow">panic</a> said...
+			 </dt>
+			 <dd class="comment-body">
+				<p>
+				Should have read access to wifi user/group. Also specify -Dwext as driver.
+				</p>
+				<span class="item-control blog-admin pid-628541820"><a style="border:none;" href="http://www.blogger.com/delete-comment.g?blogID=8939125534858322326&postID=8850938194393631228" title="Delete Comment"><span class="delete-comment-icon">&nbsp;</span></a></span>
+			 </dd>
+			
+ 			 <dt class="comment-data" id="c000000045"><a name="c5426413046099670202"></a>
+				At 
+    <a class="comment-data-link" href="http://blog.linuxconsulting.ro/2010/04/porting-wifi-drivers-to-android.html#c5426413046099670202" title="comment permalink"> May 12, 2010 5:11 AM </a>,
+				<span style="line-height:16px" class="comment-icon blogger-comment-icon"><img src="./PaNiC Random Rant (or how we used to call it  .plan)  Porting WiFi drivers to Android_files/b16-rounded.gif" alt="Blogger" style="display:inline;"></span>&nbsp;<a href="http://www.blogger.com/profile/02249525867873476997" rel="nofollow">Oramon</a> said...
+			 </dt>
+			 <dd class="comment-body">
+				<p>
+				Dear sir, I had setup my device with wpa_supplicant working good. But the message "ioctl[SIOCGIWRATE]: No such device" is showed after linkspeed command parsed by driver_awext.c. Would you please help me to figure out where to setup the correct interface in this situation? Thank you~
+				</p>
+				<span class="item-control blog-admin pid-2104134713"><a style="border:none;" href="http://www.blogger.com/delete-comment.g?blogID=8939125534858322326&postID=5426413046099670202" title="Delete Comment"><span class="delete-comment-icon">&nbsp;</span></a></span>
+			 </dd>
+			
+ 			 <dt class="comment-data" id="c000000045"><a name="c841160743489644402"></a>
+				At 
+    <a class="comment-data-link" href="http://blog.linuxconsulting.ro/2010/04/porting-wifi-drivers-to-android.html#c841160743489644402" title="comment permalink"> May 12, 2010 2:36 PM </a>,
+				<span style="line-height:16px" class="comment-icon blogger-comment-icon"><img src="./PaNiC Random Rant (or how we used to call it  .plan)  Porting WiFi drivers to Android_files/b16-rounded.gif" alt="Blogger" style="display:inline;"></span>&nbsp;<a href="http://www.blogger.com/profile/08232153615038357301" rel="nofollow">panic</a> said...
+			 </dt>
+			 <dd class="comment-body">
+				<p>
+				@yonathana  You have syntax errors on your dhcpcd line also check permissions for /system/etc/wifi<br><br>@Oramon Your driver doesn't support WRATE ioctl that means you will have no link speed information but wifi should be working without.
+				</p>
+				<span class="item-control blog-admin pid-628541820"><a style="border:none;" href="http://www.blogger.com/delete-comment.g?blogID=8939125534858322326&postID=841160743489644402" title="Delete Comment"><span class="delete-comment-icon">&nbsp;</span></a></span>
+			 </dd>
+			
+ 			 <dt class="comment-data" id="c000000045"><a name="c2202339998950683423"></a>
+				At 
+    <a class="comment-data-link" href="http://blog.linuxconsulting.ro/2010/04/porting-wifi-drivers-to-android.html#c2202339998950683423" title="comment permalink"> June 2, 2010 6:36 PM </a>,
+				<span style="line-height:16px" class="comment-icon blogger-comment-icon"><img src="./PaNiC Random Rant (or how we used to call it  .plan)  Porting WiFi drivers to Android_files/b16-rounded.gif" alt="Blogger" style="display:inline;"></span>&nbsp;<a href="http://www.blogger.com/profile/17292684332874501256" rel="nofollow">Sireesha</a> said...
+			 </dt>
+			 <dd class="comment-body">
+				<p>
+				Hi<br><br>In Step6, building it as a module, <br>When you say:<br>"Make sure you copy your kernel module when building android to the correct location."<br><br>What is the correct location ? I built my driver on linux and copied the generated wl.ko file to the out/target/product/xxx/system/lib/modules/2.6.29-android-x86/kernel/drivers/net/wireless/wl/wl.ko<br><br>But, I get "Exec format error" when I try to do insmod wl.ko.<br><br>How do I include the module to be built by android ? Mine is a broadcom 4311 wireless card.<br> <br>Regards<br>Sireesha.
+				</p>
+				<span class="item-control blog-admin pid-63486846"><a style="border:none;" href="http://www.blogger.com/delete-comment.g?blogID=8939125534858322326&postID=2202339998950683423" title="Delete Comment"><span class="delete-comment-icon">&nbsp;</span></a></span>
+			 </dd>
+			
+ 			 <dt class="comment-data" id="c000000045"><a name="c5133906241870009594"></a>
+				At 
+    <a class="comment-data-link" href="http://blog.linuxconsulting.ro/2010/04/porting-wifi-drivers-to-android.html#c5133906241870009594" title="comment permalink"> August 3, 2010 5:14 PM </a>,
+				<span style="line-height:16px" class="comment-icon blogger-comment-icon"><img src="./PaNiC Random Rant (or how we used to call it  .plan)  Porting WiFi drivers to Android_files/b16-rounded.gif" alt="Blogger" style="display:inline;"></span>&nbsp;<a href="http://www.blogger.com/profile/15244835815345395046" rel="nofollow">pyro</a> said...
+			 </dt>
+			 <dd class="comment-body">
+				<p>
+				Hi panic,<br><br>thanks for your work. It helped me a lot.<br><br>Here some improvements:<br><br>@ point 4<br>if you use dhcp in init.rc you should also add a working folder.<br><br>mkdir /data/misc/dhcp 0770 dhcp dhcp<br>chmod 0770 /data/misc/dhcp<br><br>@ point 5<br>you have to use the wpa_supplicant.conf in /data/misc/wifi because in /system/etc/wifi/ is only a template which is write protected. to save configured networks you need to have write access to the conf file.<br><br>@ point 8<br>your awext driver patch misses a small part.<br>diff --git a/drivers.c b/drivers.c<br>index 45c2f55..cc5621c 100644<br>--- a/drivers.c<br>+++ b/drivers.c<br>@@ -15,6 +15,9 @@<br> #include "includes.h"<br> <br> <br>+#ifdef CONFIG_DRIVER_AWEXT<br>+extern struct wpa_driver_ops wpa_driver_awext_ops; /* driver_awext.c */<br>+#endif /* CONFIG_DRIVER_AWEXT */<br> #ifdef CONFIG_DRIVER_WEXT<br> extern struct wpa_driver_ops wpa_driver_wext_ops; /* driver_wext.c */<br> #endif /* CONFIG_DRIVER_WEXT */<br>@@ -62,6 +65,9 @@ extern struct wpa_driver_ops wpa_driver_custom_ops; /* driver_ti.c */<br> <br> struct wpa_driver_ops *wpa_supplicant_drivers[] =<br> {<br>+#ifdef CONFIG_DRIVER_AWEXT<br>+       &amp;wpa_driver_awext_ops,<br>+#endif /* CONFIG_DRIVER_AWEXT */<br> #ifdef CONFIG_DRIVER_WEXT<br>        &amp;wpa_driver_wext_ops,<br> #endif /* CONFIG_DRIVER_WEXT */
+				</p>
+				<span class="item-control blog-admin pid-600105278"><a style="border:none;" href="http://www.blogger.com/delete-comment.g?blogID=8939125534858322326&postID=5133906241870009594" title="Delete Comment"><span class="delete-comment-icon">&nbsp;</span></a></span>
+			 </dd>
+			
+ 			 <dt class="comment-data" id="c000000045"><a name="c7246739399121827992"></a>
+				At 
+    <a class="comment-data-link" href="http://blog.linuxconsulting.ro/2010/04/porting-wifi-drivers-to-android.html#c7246739399121827992" title="comment permalink"> August 10, 2010 2:34 PM </a>,
+				<span style="line-height:16px" class="comment-icon blogger-comment-icon"><img src="./PaNiC Random Rant (or how we used to call it  .plan)  Porting WiFi drivers to Android_files/b16-rounded.gif" alt="Blogger" style="display:inline;"></span>&nbsp;<a href="http://www.blogger.com/profile/16914136561304486169" rel="nofollow">kiran</a> said...
+			 </dt>
+			 <dd class="comment-body">
+				<p>
+				Hi,<br><br>I'm trying to build wpa_supplicant_6 (Andriod 2.1),have made the modifications as said.But im getting build errors<br>-----------------------------------------<br>config.c:60: error: expected declaration specifiers or ‘...’ before ‘size_t’<br>config.c: In function ‘wpa_config_parse_string’:<br>config.c:66: warning: implicit declaration of function ‘os_strrchr’<br>config.c:66: warning: assignment makes pointer from integer without a cast<br>config.c:67: error: ‘NULL’ undeclared (first use in this function)<br>config.c:67: error: (Each undeclared identifier is reported only once<br>config.c:67: error: for each function it appears in.)<br>config.c:69: error: ‘len’ undeclared (first use in this function)<br>config.c:70: warning: implicit declaration of function ‘os_malloc’<br>----------------------------------------<br><br>Also pls clarify where the kernel module needs to copied.<br><br>Thanks<br>Kiranmai
+				</p>
+				<span class="item-control blog-admin pid-442179543"><a style="border:none;" href="http://www.blogger.com/delete-comment.g?blogID=8939125534858322326&postID=7246739399121827992" title="Delete Comment"><span class="delete-comment-icon">&nbsp;</span></a></span>
+			 </dd>
+			
+ 			 <dt class="comment-data" id="c000000045"><a name="c8546478968792085934"></a>
+				At 
+    <a class="comment-data-link" href="http://blog.linuxconsulting.ro/2010/04/porting-wifi-drivers-to-android.html#c8546478968792085934" title="comment permalink"> August 11, 2010 9:49 AM </a>,
+				<span style="line-height:16px" class="comment-icon blogger-comment-icon"><img src="./PaNiC Random Rant (or how we used to call it  .plan)  Porting WiFi drivers to Android_files/b16-rounded.gif" alt="Blogger" style="display:inline;"></span>&nbsp;<a href="http://www.blogger.com/profile/08232153615038357301" rel="nofollow">panic</a> said...
+			 </dt>
+			 <dd class="comment-body">
+				<p>
+				Kiran the patch and howto is for wpa_supplicat not for the wpa_supplicant_6 that appeared on froyo. I will look on _6 version soon.
+				</p>
+				<span class="item-control blog-admin pid-628541820"><a style="border:none;" href="http://www.blogger.com/delete-comment.g?blogID=8939125534858322326&postID=8546478968792085934" title="Delete Comment"><span class="delete-comment-icon">&nbsp;</span></a></span>
+			 </dd>
+			
+ 			 <dt class="comment-data" id="c000000045"><a name="c2254331909468956439"></a>
+				At 
+    <a class="comment-data-link" href="http://blog.linuxconsulting.ro/2010/04/porting-wifi-drivers-to-android.html#c2254331909468956439" title="comment permalink"> August 11, 2010 1:38 PM </a>,
+				<span style="line-height:16px" class="comment-icon blogger-comment-icon"><img src="./PaNiC Random Rant (or how we used to call it  .plan)  Porting WiFi drivers to Android_files/b16-rounded.gif" alt="Blogger" style="display:inline;"></span>&nbsp;<a href="http://www.blogger.com/profile/16914136561304486169" rel="nofollow">kiran</a> said...
+			 </dt>
+			 <dd class="comment-body">
+				<p>
+				panic,i want to use upnp-service discovery in andriod.Do you i/p's about that?<br>Any workiing library sources/refernces.<br><br>Thanks<br>Kiranmai
+				</p>
+				<span class="item-control blog-admin pid-442179543"><a style="border:none;" href="http://www.blogger.com/delete-comment.g?blogID=8939125534858322326&postID=2254331909468956439" title="Delete Comment"><span class="delete-comment-icon">&nbsp;</span></a></span>
+			 </dd>
+			
+ 			 <dt class="comment-data" id="c000000045"><a name="c6702605376034566077"></a>
+				At 
+    <a class="comment-data-link" href="http://blog.linuxconsulting.ro/2010/04/porting-wifi-drivers-to-android.html#c6702605376034566077" title="comment permalink"> August 23, 2010 4:47 PM </a>,
+				<span style="line-height:16px" class="comment-icon blogger-comment-icon"><img src="./PaNiC Random Rant (or how we used to call it  .plan)  Porting WiFi drivers to Android_files/b16-rounded.gif" alt="Blogger" style="display:inline;"></span>&nbsp;<a href="http://www.blogger.com/profile/14902383051789825520" rel="nofollow">guru</a> said...
+			 </dt>
+			 <dd class="comment-body">
+				<p>
+				Hi, I followed the steps to enable wifi on froyo. wifi is getting enabled but when tried to connect it is not setting system properties like dhcp.eth0.ipaddress and other. it is setting only dhcp.eth0.dns1, dhcp.eth0.dns2 and dns3. whether I need to configure or change to set all system properties?
+				</p>
+				<span class="item-control blog-admin pid-1539979468"><a style="border:none;" href="http://www.blogger.com/delete-comment.g?blogID=8939125534858322326&postID=6702605376034566077" title="Delete Comment"><span class="delete-comment-icon">&nbsp;</span></a></span>
+			 </dd>
+			
+ 			 <dt class="comment-data" id="c000000045"><a name="c2792596739112827670"></a>
+				At 
+    <a class="comment-data-link" href="http://blog.linuxconsulting.ro/2010/04/porting-wifi-drivers-to-android.html#c2792596739112827670" title="comment permalink"> September 3, 2010 2:28 AM </a>,
+				<span style="line-height:16px" class="comment-icon blogger-comment-icon"><img src="./PaNiC Random Rant (or how we used to call it  .plan)  Porting WiFi drivers to Android_files/b16-rounded.gif" alt="Blogger" style="display:inline;"></span>&nbsp;<a href="http://www.blogger.com/profile/04624083435276548316" rel="nofollow">Eric Nelson</a> said...
+			 </dt>
+			 <dd class="comment-body">
+				<p>
+				Thanks Nicu. I wish I had found your post a couple of days earlier, but even so, it saved me considerable time configuring things for one of our customers.<br><br>I posted some notes on my experiences on our blog:<br>    http://boundarydevices.com/blogs/?p=284
+				</p>
+				<span class="item-control blog-admin pid-527863611"><a style="border:none;" href="http://www.blogger.com/delete-comment.g?blogID=8939125534858322326&postID=2792596739112827670" title="Delete Comment"><span class="delete-comment-icon">&nbsp;</span></a></span>
+			 </dd>
+			
+ 			 <dt class="comment-data" id="c000000045"><a name="c6714756562823331118"></a>
+				At 
+    <a class="comment-data-link" href="http://blog.linuxconsulting.ro/2010/04/porting-wifi-drivers-to-android.html#c6714756562823331118" title="comment permalink"> September 28, 2010 8:08 PM </a>,
+				<span style="line-height:16px" class="comment-icon blogger-comment-icon"><img src="./PaNiC Random Rant (or how we used to call it  .plan)  Porting WiFi drivers to Android_files/b16-rounded.gif" alt="Blogger" style="display:inline;"></span>&nbsp;<a href="http://www.blogger.com/profile/09045450529065285798" rel="nofollow">G2</a> said...
+			 </dt>
+			 <dd class="comment-body">
+				<p>
+				Great stuff! Works like a charm on Eclair. What about Froyo and wpa_supplicant_6?
+				</p>
+				<span class="item-control blog-admin pid-1014996615"><a style="border:none;" href="http://www.blogger.com/delete-comment.g?blogID=8939125534858322326&postID=6714756562823331118" title="Delete Comment"><span class="delete-comment-icon">&nbsp;</span></a></span>
+			 </dd>
+			
+ 			 <dt class="comment-data" id="c000000045"><a name="c3364965695158874905"></a>
+				At 
+    <a class="comment-data-link" href="http://blog.linuxconsulting.ro/2010/04/porting-wifi-drivers-to-android.html#c3364965695158874905" title="comment permalink"> November 1, 2010 7:38 AM </a>,
+				<span style="line-height:16px" class="comment-icon blogger-comment-icon"><img src="./PaNiC Random Rant (or how we used to call it  .plan)  Porting WiFi drivers to Android_files/b16-rounded.gif" alt="Blogger" style="display:inline;"></span>&nbsp;<a href="http://www.blogger.com/profile/09045450529065285798" rel="nofollow">G2</a> said...
+			 </dt>
+			 <dd class="comment-body">
+				<p>
+				If you are interested, I have done it for supplicant 0.6.10: it's here:<br>http://git.alwaysinnovating.com/cgit.cgi/ai.android/tree/preprocess/froyo/wifi.patch<br>The only notable difference is .get_scan_results2
+				</p>
+				<span class="item-control blog-admin pid-1014996615"><a style="border:none;" href="http://www.blogger.com/delete-comment.g?blogID=8939125534858322326&postID=3364965695158874905" title="Delete Comment"><span class="delete-comment-icon">&nbsp;</span></a></span>
+			 </dd>
+			
+ 			 <dt class="comment-data" id="c000000045"><a name="c814532281398315985"></a>
+				At 
+    <a class="comment-data-link" href="http://blog.linuxconsulting.ro/2010/04/porting-wifi-drivers-to-android.html#c814532281398315985" title="comment permalink"> January 22, 2011 12:39 AM </a>,
+				<span style="line-height:16px" class="comment-icon blogger-comment-icon"><img src="./PaNiC Random Rant (or how we used to call it  .plan)  Porting WiFi drivers to Android_files/b16-rounded.gif" alt="Blogger" style="display:inline;"></span>&nbsp;<a href="http://www.blogger.com/profile/08852566850446804691" rel="nofollow">Blake</a> said...
+			 </dt>
+			 <dd class="comment-body">
+				<p>
+				Hi,<br><br>I'd like very much to speak to you about your informative post on porting Wi-Fi drivers to Android.  Are you interested in freelance consulting work?  I'd be really grateful if you could contact me - blake@hfield.com.  I look forward to hearing from you.<br><br>-Blake
+				</p>
+				<span class="item-control blog-admin pid-1300610804"><a style="border:none;" href="http://www.blogger.com/delete-comment.g?blogID=8939125534858322326&postID=814532281398315985" title="Delete Comment"><span class="delete-comment-icon">&nbsp;</span></a></span>
+			 </dd>
+			
+ 			 <dt class="comment-data" id="c000000045"><a name="c1515016842108166408"></a>
+				At 
+    <a class="comment-data-link" href="http://blog.linuxconsulting.ro/2010/04/porting-wifi-drivers-to-android.html#c1515016842108166408" title="comment permalink"> February 22, 2011 4:06 PM </a>,
+				<span style="line-height:16px" class="comment-icon blogger-comment-icon"><img src="./PaNiC Random Rant (or how we used to call it  .plan)  Porting WiFi drivers to Android_files/b16-rounded.gif" alt="Blogger" style="display:inline;"></span>&nbsp;<a href="http://www.blogger.com/profile/13115278618003740986" rel="nofollow">proveyourselfthom</a> said...
+			 </dt>
+			 <dd class="comment-body">
+				<p>
+				Sorry but I haven't found any way to contact you. So, why your sis drivers aren't part of Xorg?<br>Is it updated?<br>Thank you.
+				</p>
+				<span class="item-control blog-admin pid-480959144"><a style="border:none;" href="http://www.blogger.com/delete-comment.g?blogID=8939125534858322326&postID=1515016842108166408" title="Delete Comment"><span class="delete-comment-icon">&nbsp;</span></a></span>
+			 </dd>
+			
+ 			 <dt class="comment-data" id="c000000045"><a name="c3179972275291969182"></a>
+				At 
+    <a class="comment-data-link" href="http://blog.linuxconsulting.ro/2010/04/porting-wifi-drivers-to-android.html#c3179972275291969182" title="comment permalink"> March 4, 2011 11:43 AM </a>,
+				<span style="line-height:16px" class="comment-icon blogger-comment-icon"><img src="./PaNiC Random Rant (or how we used to call it  .plan)  Porting WiFi drivers to Android_files/b16-rounded.gif" alt="Blogger" style="display:inline;"></span>&nbsp;<a href="http://www.blogger.com/profile/02312574508356583270" rel="nofollow">hoyushen</a> said...
+			 </dt>
+			 <dd class="comment-body">
+				<p>
+				Dear Sir<br><br>First, thank you for your shares, it really helps me a lot. Now I have a question of supporting multi-WiFi drivers at the same time. Is there any possibility not to init interface name(ex.wlan0,wpa_supplicant -iwlan0 -c xxxxx......) in init.rc? Because different WiFi drivers have different interface names. Or could you provide any other suggestions for this purpose? My work-arounded solution is to modify the same interface name for different WiFi drivers in src code(ex.wlan0). Then modify wifi.c(hardware\libhardware_legacy\wifi) to load different WiFi modules base on VID/PID table, which I've added for this purpose. But I think it's not a good solution. I'd appreciate of your comments. Thank you for your kindly help again.<br><br>ps. my email is hoyushen@gmail.com<br><br>Sincerely, Kevin
+				</p>
+				<span class="item-control blog-admin pid-1320369713"><a style="border:none;" href="http://www.blogger.com/delete-comment.g?blogID=8939125534858322326&postID=3179972275291969182" title="Delete Comment"><span class="delete-comment-icon">&nbsp;</span></a></span>
+			 </dd>
+			
+ 			 <dt class="comment-data" id="c000000045"><a name="c273191732444309149"></a>
+				At 
+    <a class="comment-data-link" href="http://blog.linuxconsulting.ro/2010/04/porting-wifi-drivers-to-android.html#c273191732444309149" title="comment permalink"> March 22, 2011 5:19 PM </a>,
+				<span style="line-height:16px" class="comment-icon blogger-comment-icon"><img src="./PaNiC Random Rant (or how we used to call it  .plan)  Porting WiFi drivers to Android_files/b16-rounded.gif" alt="Blogger" style="display:inline;"></span>&nbsp;<a href="http://www.blogger.com/profile/08232153615038357301" rel="nofollow">panic</a> said...
+			 </dt>
+			 <dd class="comment-body">
+				<p>
+				proveyourselfthom:<br><br>No the X11 drivers are no longer updated, although Mandriva had picked up my driver and added fixes and updates. I think the driver name was sisimedia or something similar.
+				</p>
+				<span class="item-control blog-admin pid-628541820"><a style="border:none;" href="http://www.blogger.com/delete-comment.g?blogID=8939125534858322326&postID=273191732444309149" title="Delete Comment"><span class="delete-comment-icon">&nbsp;</span></a></span>
+			 </dd>
+			
+ 			 <dt class="comment-data" id="c000000045"><a name="c8525228674372359256"></a>
+				At 
+    <a class="comment-data-link" href="http://blog.linuxconsulting.ro/2010/04/porting-wifi-drivers-to-android.html#c8525228674372359256" title="comment permalink"> March 22, 2011 5:20 PM </a>,
+				<span style="line-height:16px" class="comment-icon blogger-comment-icon"><img src="./PaNiC Random Rant (or how we used to call it  .plan)  Porting WiFi drivers to Android_files/b16-rounded.gif" alt="Blogger" style="display:inline;"></span>&nbsp;<a href="http://www.blogger.com/profile/08232153615038357301" rel="nofollow">panic</a> said...
+			 </dt>
+			 <dd class="comment-body">
+				<p>
+				hoyushen:<br><br>Might be possible with gingerbread, since I've seen that the wpa_supplicant and dhcp are now started from wifi.c in hardware_legacy/wifi<br>You will need to modify wifi.c to get the interface name from sysfs and build up the wpa_supplicant command.
+				</p>
+				<span class="item-control blog-admin pid-628541820"><a style="border:none;" href="http://www.blogger.com/delete-comment.g?blogID=8939125534858322326&postID=8525228674372359256" title="Delete Comment"><span class="delete-comment-icon">&nbsp;</span></a></span>
+			 </dd>
+			
+ 			 <dt class="comment-data" id="c000000045"><a name="c7559030473323120482"></a>
+				At 
+    <a class="comment-data-link" href="http://blog.linuxconsulting.ro/2010/04/porting-wifi-drivers-to-android.html#c7559030473323120482" title="comment permalink"> May 4, 2011 2:57 PM </a>,
+				<span style="line-height:16px" class="comment-icon blogger-comment-icon"><img src="./PaNiC Random Rant (or how we used to call it  .plan)  Porting WiFi drivers to Android_files/b16-rounded.gif" alt="Blogger" style="display:inline;"></span>&nbsp;<a href="http://www.blogger.com/profile/10863596073909707853" rel="nofollow">Urvish Gohil</a> said...
+			 </dt>
+			 <dd class="comment-body">
+				<p>
+				Hi panic,<br>Thanks a lot for this beautiful guide.<br>I could now make wifi working on GingerBread.<br><br>The issue I am facing is, it doesn't scan any network(it doesnt give error thoug). (ping works fine)<br><br>wpa_supplicant.conf<br>--------------------<br>update_config=1<br>ctrl_interface=DIR=/data/system/wpa_supplicant GROUP=wifi<br>eapol_version=1<br>ap_scan=1<br>fast_reauth=1<br><br><br>What I do is,<br>"insmode wlan.ko"<br>To do it from shell, I have 2 shells open.<br>1. wpa_supplicant -dd -Dwext -imlan0 -c/data/misc/wifi/wpa_supplicant.conf<br><br>2. wpa_cli -p /data/system/wpa_cupplicant<br>&gt; scan<br><br><br><br>Logcat<br>========<br>D/wpa_supplicant( 1450): CMD: PING<br>D/wpa_supplicant( 1450): CMD: SCAN<br>D/wpa_supplicant( 1450): Setting scan request: 0 sec 0 usec<br>D/wpa_supplicant( 1450): wpa_supplicant_scan: scan_req = 2, ap_scan = 1<br>D/wpa_supplicant( 1450): State: INACTIVE -&gt; SCANNING<br>I/wpa_supplicant( 1450): CTRL-EVENT-STATE-CHANGE id=-1 state=2 BSSID=00:00:00:00:00:00<br>D/wpa_supplicant( 1450): Starting AP scan (broadcast SSID)<br>D/wpa_supplicant( 1450): wpa_driver_wext_combo_scan: Start<br>D/wpa_supplicant( 1450): Scan requested - scan timeout 10 seconds<br>D/wpa_supplicant( 1450): CMD: PING<br>D/wpa_supplicant( 1450): Scan timeout - try to get results<br>D/wpa_supplicant( 1450): Received 0 bytes of scan results (0 BSSes)<br>D/wpa_supplicant( 1450): New scan results available<br>D/wpa_supplicant( 1450): No suitable AP found.<br>D/wpa_supplicant( 1450): State: SCANNING -&gt; INACTIVE<br>I/wpa_supplicant( 1450): CTRL-EVENT-STATE-CHANGE id=-1 state=1 BSSID=00:00:00:00:00:00<br>D/wpa_supplicant( 1450): CMD: PING<br><br>Can you please help out in terms of what I am missing???
+				</p>
+				<span class="item-control blog-admin pid-1067955558"><a style="border:none;" href="http://www.blogger.com/delete-comment.g?blogID=8939125534858322326&postID=7559030473323120482" title="Delete Comment"><span class="delete-comment-icon">&nbsp;</span></a></span>
+			 </dd>
+			
+ 			 <dt class="comment-data" id="c000000045"><a name="c5761551262452133525"></a>
+				At 
+    <a class="comment-data-link" href="http://blog.linuxconsulting.ro/2010/04/porting-wifi-drivers-to-android.html#c5761551262452133525" title="comment permalink"> August 20, 2011 12:24 PM </a>,
+				<span style="line-height:16px" class="comment-icon blogger-comment-icon"><img src="./PaNiC Random Rant (or how we used to call it  .plan)  Porting WiFi drivers to Android_files/b16-rounded.gif" alt="Blogger" style="display:inline;"></span>&nbsp;<a href="http://www.blogger.com/profile/10569127649595802890" rel="nofollow">Yegnesh</a> said...
+			 </dt>
+			 <dd class="comment-body">
+				<p>
+				Hi,<br><br>I followed the steps as you have mentioned in the post, using Android Sockets, but I get an error as follows:-<br><br>I/wpa_supplicant( 1221): CTRL_IFACE monitor[0]: 13 - Permission denied<br>I/wpa_supplicant( 1221): CTRL-EVENT-STATE-CHANGE id=-1 state=1 BSSID=00:00:00:00:00:00<br>I/wpa_supplicant( 1221): CTRL_IFACE monitor[0]: 13 - Permission denied.<br><br>Please let me know if you have come across this issue.<br><br>Thanks &amp; Regards,<br>Yegnesh
+				</p>
+				<span class="item-control blog-admin pid-2019368991"><a style="border:none;" href="http://www.blogger.com/delete-comment.g?blogID=8939125534858322326&postID=5761551262452133525" title="Delete Comment"><span class="delete-comment-icon">&nbsp;</span></a></span>
+			 </dd>
+			
+ 			 <dt class="comment-data" id="c000000045"><a name="c3175971846790416372"></a>
+				At 
+    <a class="comment-data-link" href="http://blog.linuxconsulting.ro/2010/04/porting-wifi-drivers-to-android.html#c3175971846790416372" title="comment permalink"> December 23, 2011 7:17 AM </a>,
+				<span style="line-height:16px" class="comment-icon blogger-comment-icon"><img src="./PaNiC Random Rant (or how we used to call it  .plan)  Porting WiFi drivers to Android_files/b16-rounded.gif" alt="Blogger" style="display:inline;"></span>&nbsp;<a href="http://www.blogger.com/profile/02807684101285356403" rel="nofollow">ernice</a> said...
+			 </dt>
+			 <dd class="comment-body">
+				<p>
+				http://blog.naver.com/ernice/20146498720<br><br>Thanks. I successed with RTL8188cu usb wifi modules and NFS
+				</p>
+				<span class="item-control blog-admin pid-1003517016"><a style="border:none;" href="http://www.blogger.com/delete-comment.g?blogID=8939125534858322326&postID=3175971846790416372" title="Delete Comment"><span class="delete-comment-icon">&nbsp;</span></a></span>
+			 </dd>
+			
+ 			 <dt class="comment-data" id="c000000045"><a name="c6074546848225888798"></a>
+				At 
+    <a class="comment-data-link" href="http://blog.linuxconsulting.ro/2010/04/porting-wifi-drivers-to-android.html#c6074546848225888798" title="comment permalink"> January 16, 2012 8:44 PM </a>,
+				<span style="line-height:16px" class="comment-icon blogger-comment-icon"><img src="./PaNiC Random Rant (or how we used to call it  .plan)  Porting WiFi drivers to Android_files/b16-rounded.gif" alt="Blogger" style="display:inline;"></span>&nbsp;<a href="http://www.blogger.com/profile/11359959683589714795" rel="nofollow">eyob</a> said...
+			 </dt>
+			 <dd class="comment-body">
+				<p>
+				Panic,<br>Are you still taking some wifi related questions?
+				</p>
+				<span class="item-control blog-admin pid-1067101102"><a style="border:none;" href="http://www.blogger.com/delete-comment.g?blogID=8939125534858322326&postID=6074546848225888798" title="Delete Comment"><span class="delete-comment-icon">&nbsp;</span></a></span>
+			 </dd>
+			
+ 			 <dt class="comment-data" id="c000000045"><a name="c1681866390483226081"></a>
+				At 
+    <a class="comment-data-link" href="http://blog.linuxconsulting.ro/2010/04/porting-wifi-drivers-to-android.html#c1681866390483226081" title="comment permalink"> February 5, 2012 1:49 AM </a>,
+				<span style="line-height:16px" class="comment-icon blogger-comment-icon"><img src="./PaNiC Random Rant (or how we used to call it  .plan)  Porting WiFi drivers to Android_files/b16-rounded.gif" alt="Blogger" style="display:inline;"></span>&nbsp;<a href="http://www.blogger.com/profile/08232153615038357301" rel="nofollow">Nicu Pavel</a> said...
+			 </dt>
+			 <dd class="comment-body">
+				<p>
+				Next update will be for Android 4.x ICS
+				</p>
+				<span class="item-control blog-admin pid-628541820"><a style="border:none;" href="http://www.blogger.com/delete-comment.g?blogID=8939125534858322326&postID=1681866390483226081" title="Delete Comment"><span class="delete-comment-icon">&nbsp;</span></a></span>
+			 </dd>
+			
+ 			 <dt class="comment-data" id="c000000045"><a name="c4965282299643016992"></a>
+				At 
+    <a class="comment-data-link" href="http://blog.linuxconsulting.ro/2010/04/porting-wifi-drivers-to-android.html#c4965282299643016992" title="comment permalink"> March 6, 2012 2:56 PM </a>,
+				<span style="line-height:16px" class="comment-icon blogger-comment-icon"><img src="./PaNiC Random Rant (or how we used to call it  .plan)  Porting WiFi drivers to Android_files/b16-rounded.gif" alt="Blogger" style="display:inline;"></span>&nbsp;<a href="http://www.blogger.com/profile/11413391668320017490" rel="nofollow">Andrey</a> said...
+			 </dt>
+			 <dd class="comment-body">
+				<p>
+				Hi !<br>What is the difference between Android private socket and Unix standard socket ? What should one prefer ?<br>Thanks,<br>Andrey
+				</p>
+				<span class="item-control blog-admin pid-529129447"><a style="border:none;" href="http://www.blogger.com/delete-comment.g?blogID=8939125534858322326&postID=4965282299643016992" title="Delete Comment"><span class="delete-comment-icon">&nbsp;</span></a></span>
+			 </dd>
+			
+ 			 <dt class="comment-data" id="c000000045"><a name="c293826987471987058"></a>
+				At 
+    <a class="comment-data-link" href="http://blog.linuxconsulting.ro/2010/04/porting-wifi-drivers-to-android.html#c293826987471987058" title="comment permalink"> April 5, 2012 12:02 AM </a>,
+				<span style="line-height:16px" class="comment-icon blogger-comment-icon"><img src="./PaNiC Random Rant (or how we used to call it  .plan)  Porting WiFi drivers to Android_files/b16-rounded.gif" alt="Blogger" style="display:inline;"></span>&nbsp;<a href="http://www.blogger.com/profile/06835634906057864432" rel="nofollow">Adel Nour</a> said...
+			 </dt>
+			 <dd class="comment-body">
+				<p>
+				i am using panda board runs Android ICS and the on board wifi interface is enabled "wlan0"<br>Now i am trying to add another interface "wlan1" to android and i want when i enable the wifi on the GUI it turns on my interface , i have succeeded to do so with wpa_supplicant by setting wifi.interface wlan1 , but the problem is with the DHCP , the DHCP is always trying to run over wlan0 not wlan1<br>Is there is any property that i can sit to convince the GUI to run the DHCP over wlan1?
+				</p>
+				<span class="item-control blog-admin pid-1692246696"><a style="border:none;" href="http://www.blogger.com/delete-comment.g?blogID=8939125534858322326&postID=293826987471987058" title="Delete Comment"><span class="delete-comment-icon">&nbsp;</span></a></span>
+			 </dd>
+			
+ 			 <dt class="comment-data" id="c000000045"><a name="c692395473667472880"></a>
+				At 
+    <a class="comment-data-link" href="http://blog.linuxconsulting.ro/2010/04/porting-wifi-drivers-to-android.html#c692395473667472880" title="comment permalink"> April 6, 2012 2:55 PM </a>,
+				<span style="line-height:16px" class="comment-icon blogger-comment-icon"><img src="./PaNiC Random Rant (or how we used to call it  .plan)  Porting WiFi drivers to Android_files/b16-rounded.gif" alt="Blogger" style="display:inline;"></span>&nbsp;<a href="http://www.blogger.com/profile/05231657665449902519" rel="nofollow">globula_neagra</a> said...
+			 </dt>
+			 <dd class="comment-body">
+				<p>
+				Salut, as dori si eu niste ajutor, am o tableta arnova 7c g2, filesystem yaffs, si am reusit sa folosesc un rom de zte v9, problema e ca, nu am wifi, telefonie, radio, bluetoth, am incercat sa portez asa cum zici tu aici, dar nu reusesc de nici un fel (am folosit driverele originale care erau pe room-ul de la arnova, editat init etc.)<br>Am aproximativ acelasi rezultat cu un tip care a postat pe aici, as aprea foarte mult orice tip de sfat.
+				</p>
+				<span class="item-control blog-admin pid-1817197226"><a style="border:none;" href="http://www.blogger.com/delete-comment.g?blogID=8939125534858322326&postID=692395473667472880" title="Delete Comment"><span class="delete-comment-icon">&nbsp;</span></a></span>
+			 </dd>
+			
+ 			 <dt class="comment-data" id="c000000045"><a name="c5989406378694624149"></a>
+				At 
+    <a class="comment-data-link" href="http://blog.linuxconsulting.ro/2010/04/porting-wifi-drivers-to-android.html#c5989406378694624149" title="comment permalink"> April 17, 2012 8:10 AM </a>,
+				<span style="line-height:16px" class="comment-icon blogger-comment-icon"><img src="./PaNiC Random Rant (or how we used to call it  .plan)  Porting WiFi drivers to Android_files/b16-rounded.gif" alt="Blogger" style="display:inline;"></span>&nbsp;<a href="http://www.blogger.com/profile/15411821010596497114" rel="nofollow">AT</a> said...
+			 </dt>
+			 <dd class="comment-body">
+				<p>
+				Panic,<br><br>I have a hardware device very similar to the O2 joggler.  Specifically it is an Atom-based Openpeak Openframe 7E.<br><br>There are some great Android builds out there for it's sister device, the o2 Joggler, but that device has a different WiFi radio. <br><br>http://www.jogglerwiki.com/forum/viewtopic.php?f=2&amp;t=196&amp;start=240<br><br>As a result it appears that the joggler image mentioned doesn't have the necessary WiFi driver for the Openframe hardware.<br><br>The Wireless hardware in the OpenFrame, verified by lspci, is the BCM43225.  From this site, I believe the driver would be the brcmsmac.<br><br>Assuming that makes sense so far, here's my goal.  I'd like to add the appropriate Android driver for this WiFi hardware to the custom build mentioned above.  I believe it would entail the addition of the .ko driver, as well as the .bin firmware files as you outline.<br><br>My challenge, however, is that I cannot find an Android driver (.ko) already built, nor have I been able to verify that adding that driver would actually work.<br><br>Naively I took an ubuntu version of the brcmsmac.ko, added it to my device, and ran insmod on it. That errors out and fails to load.<br><br>Any suggestions?  Any questions that would help clarify what I'm trying to do?<br><br>Bottom line, I have an andriod image that's 99% of the way there, I just need to "add" support for the specific wireless device installed in my hardware.<br><br>Any guidance would be greatly appreciated.<br><br>Thanks and best regards<br>AT
+				</p>
+				<span class="item-control blog-admin pid-849246837"><a style="border:none;" href="http://www.blogger.com/delete-comment.g?blogID=8939125534858322326&postID=5989406378694624149" title="Delete Comment"><span class="delete-comment-icon">&nbsp;</span></a></span>
+			 </dd>
+			
+ 			 <dt class="comment-data" id="c000000045"><a name="c3668031882056634978"></a>
+				At 
+    <a class="comment-data-link" href="http://blog.linuxconsulting.ro/2010/04/porting-wifi-drivers-to-android.html#c3668031882056634978" title="comment permalink"> April 17, 2012 9:12 PM </a>,
+				<span style="line-height:16px" class="comment-icon blogger-comment-icon"><img src="./PaNiC Random Rant (or how we used to call it  .plan)  Porting WiFi drivers to Android_files/b16-rounded.gif" alt="Blogger" style="display:inline;"></span>&nbsp;<a href="http://www.blogger.com/profile/08232153615038357301" rel="nofollow">Nicu Pavel</a> said...
+			 </dt>
+			 <dd class="comment-body">
+				<p>
+				@AT you will need to get the kernel source for that device, and compile the kernel module for the wifi. It probably fails because of missmatched kernel version / arch. The ubuntu compiled .ko won't work since it's compiled for another kernel and probably with another march flags.
+				</p>
+				<span class="item-control blog-admin pid-628541820"><a style="border:none;" href="http://www.blogger.com/delete-comment.g?blogID=8939125534858322326&postID=3668031882056634978" title="Delete Comment"><span class="delete-comment-icon">&nbsp;</span></a></span>
+			 </dd>
+			
+ 			 <dt class="comment-data" id="c000000045"><a name="c2838953723082554323"></a>
+				At 
+    <a class="comment-data-link" href="http://blog.linuxconsulting.ro/2010/04/porting-wifi-drivers-to-android.html#c2838953723082554323" title="comment permalink"> April 17, 2012 9:16 PM </a>,
+				<span style="line-height:16px" class="comment-icon blogger-comment-icon"><img src="./PaNiC Random Rant (or how we used to call it  .plan)  Porting WiFi drivers to Android_files/b16-rounded.gif" alt="Blogger" style="display:inline;"></span>&nbsp;<a href="http://www.blogger.com/profile/08232153615038357301" rel="nofollow">Nicu Pavel</a> said...
+			 </dt>
+			 <dd class="comment-body">
+				<p>
+				@globula_neagra If you change the kernel version by using another ROM the old modules won't work, they need to be recompiled.
+				</p>
+				<span class="item-control blog-admin pid-628541820"><a style="border:none;" href="http://www.blogger.com/delete-comment.g?blogID=8939125534858322326&postID=2838953723082554323" title="Delete Comment"><span class="delete-comment-icon">&nbsp;</span></a></span>
+			 </dd>
+			
+ 			 <dt class="comment-data" id="c000000045"><a name="c5691591283361956415"></a>
+				At 
+    <a class="comment-data-link" href="http://blog.linuxconsulting.ro/2010/04/porting-wifi-drivers-to-android.html#c5691591283361956415" title="comment permalink"> April 17, 2012 9:20 PM </a>,
+				<span style="line-height:16px" class="comment-icon blogger-comment-icon"><img src="./PaNiC Random Rant (or how we used to call it  .plan)  Porting WiFi drivers to Android_files/b16-rounded.gif" alt="Blogger" style="display:inline;"></span>&nbsp;<a href="http://www.blogger.com/profile/08232153615038357301" rel="nofollow">Nicu Pavel</a> said...
+			 </dt>
+			 <dd class="comment-body">
+				<p>
+				@Adel Nour The latest gingerbread added support for multiple interface DHCPCD.<br>They are configured in init.rc by dhcpcd_wlan0, dhcpcd_wlan1<br>For older versions of android see my patch: https://gitorious.org/picopc-android-eclair/system-core/commit/515dbcf064d432d6a8f04a106f31287e1780e96b
+				</p>
+				<span class="item-control blog-admin pid-628541820"><a style="border:none;" href="http://www.blogger.com/delete-comment.g?blogID=8939125534858322326&postID=5691591283361956415" title="Delete Comment"><span class="delete-comment-icon">&nbsp;</span></a></span>
+			 </dd>
+			
+ 			 <dt class="comment-data" id="c000000045"><a name="c7484354549629456560"></a>
+				At 
+    <a class="comment-data-link" href="http://blog.linuxconsulting.ro/2010/04/porting-wifi-drivers-to-android.html#c7484354549629456560" title="comment permalink"> April 19, 2012 2:00 AM </a>,
+				<span style="line-height:16px" class="comment-icon blogger-comment-icon"><img src="./PaNiC Random Rant (or how we used to call it  .plan)  Porting WiFi drivers to Android_files/b16-rounded.gif" alt="Blogger" style="display:inline;"></span>&nbsp;<a href="http://www.blogger.com/profile/15411821010596497114" rel="nofollow">AT</a> said...
+			 </dt>
+			 <dd class="comment-body">
+				<p>
+				Thanks Nicu!  I have the source for the driver.  Can I compile on OSX by specifying the proper target architecture??
+				</p>
+				<span class="item-control blog-admin pid-849246837"><a style="border:none;" href="http://www.blogger.com/delete-comment.g?blogID=8939125534858322326&postID=7484354549629456560" title="Delete Comment"><span class="delete-comment-icon">&nbsp;</span></a></span>
+			 </dd>
+			
+ 			 <dt class="comment-data" id="c000000045"><a name="c2479712915896411787"></a>
+				At 
+    <a class="comment-data-link" href="http://blog.linuxconsulting.ro/2010/04/porting-wifi-drivers-to-android.html#c2479712915896411787" title="comment permalink"> May 11, 2012 9:10 AM </a>,
+				<span style="line-height:16px" class="comment-icon blogger-comment-icon"><img src="./PaNiC Random Rant (or how we used to call it  .plan)  Porting WiFi drivers to Android_files/b16-rounded.gif" alt="Blogger" style="display:inline;"></span>&nbsp;<a href="http://www.blogger.com/profile/15567556747450477732" rel="nofollow">start_kernel</a> said...
+			 </dt>
+			 <dd class="comment-body">
+				<p>
+				Hi Nicu , <br><br>    According to following :<br> <br>Android uses wireless-extensions to support its 802.11 drivers. The drivers that Android devices have up to this day used are all using wireless-extensions for communication. <br>     <br>    It seems to said that a kernel driver implment via mac80211, cfg80211 API could not support Andorid now, right  ?<br><br>    I am trying to port a rtl81xx series driver (in linux 2.6.35, realtek chip) to support Android but failed; the Android setting  UI - wifi enable checkbox appers to on then off again and again ...<br><br>    I find this driver implement via mac80211 , cfg80211 API , issues seems to be related about after  scanning ... <br><br>    Is there any solution to resolve this ? <br><br>    Thanks very much .
+				</p>
+				<span class="item-control blog-admin pid-753309590"><a style="border:none;" href="http://www.blogger.com/delete-comment.g?blogID=8939125534858322326&postID=2479712915896411787" title="Delete Comment"><span class="delete-comment-icon">&nbsp;</span></a></span>
+			 </dd>
+			
+ 			 <dt class="comment-data" id="c000000045"><a name="c5687099047355295010"></a>
+				At 
+    <a class="comment-data-link" href="http://blog.linuxconsulting.ro/2010/04/porting-wifi-drivers-to-android.html#c5687099047355295010" title="comment permalink"> May 11, 2012 9:15 AM </a>,
+				<span style="line-height:16px" class="comment-icon blogger-comment-icon"><img src="./PaNiC Random Rant (or how we used to call it  .plan)  Porting WiFi drivers to Android_files/b16-rounded.gif" alt="Blogger" style="display:inline;"></span>&nbsp;<a href="http://www.blogger.com/profile/15567556747450477732" rel="nofollow">start_kernel</a> said...
+			 </dt>
+			 <dd class="comment-body">
+				<p>
+				Hi Nicu , <br><br>    According to following :<br> <br>Android uses wireless-extensions to support its 802.11 drivers. The drivers that Android devices have up to this day used are all using wireless-extensions for communication. <br>     <br>    It seems to said that a kernel driver implment via mac80211, cfg80211 API could not support Andorid now, right  ?<br><br>    I am trying to port a rtl81xx series driver (in linux 2.6.35, realtek chip) to support Android but failed; the Android setting  UI - wifi enable checkbox appers to on then off again and again ...<br><br>    I find this driver implement via mac80211 , cfg80211 API , issues seems to be related about after  scanning ... <br><br>    Is there any solution to resolve this ? <br><br>    Thanks very much .
+				</p>
+				<span class="item-control blog-admin pid-753309590"><a style="border:none;" href="http://www.blogger.com/delete-comment.g?blogID=8939125534858322326&postID=5687099047355295010" title="Delete Comment"><span class="delete-comment-icon">&nbsp;</span></a></span>
+			 </dd>
+			
+ 			 <dt class="comment-data" id="c000000045"><a name="c6157325817263024270"></a>
+				At 
+    <a class="comment-data-link" href="http://blog.linuxconsulting.ro/2010/04/porting-wifi-drivers-to-android.html#c6157325817263024270" title="comment permalink"> May 25, 2012 4:29 PM </a>,
+				<span style="line-height:16px" class="comment-icon blogger-comment-icon"><img src="./PaNiC Random Rant (or how we used to call it  .plan)  Porting WiFi drivers to Android_files/b16-rounded.gif" alt="Blogger" style="display:inline;"></span>&nbsp;<a href="http://www.blogger.com/profile/04781761403729833666" rel="nofollow">ffxx68</a> said...
+			 </dt>
+			 <dd class="comment-body">
+				<p>
+				Hi, thanks for this clear and complete tutorial. Very helpful!<br><br>But... one thing I miss, very basic I think. I have prepared my wpa_supplicant.conf and I have built my driver from the kernel. So, in opedr to pick them with my Andorid build, in my full_.mk I've added these copy operations:<br><br>PRODUCT_COPY_FILES += \<br>        $(LOCAL_PATH)/bcm/dhd.ko:system/lib/modules \<br> $(LOCAL_PATH)/bcm/4329_nvram.txt:system/etc/firmware \<br> $(LOCAL_PATH)/bcm/fw4329.bin:system/etc/firmware \<br> $(LOCAL_PATH)/bcm/wpa_supplicant.conf:system/etc/wifi<br><br><br>but as neither system/etc/firmware nor system/etc/wifi exist in the AOSP out/target dir, the result is incomplete.<br><br>How to make the AOSP build create the missing directories?<br><br> thanks<br><br>PS- Anyone interested, this is he discussion group about the platform I'm working on: <br><br>https://groups.google.com/forum/?fromgroups#!forum/renesas-emev-osp
+				</p>
+				<span class="item-control blog-admin pid-5122431"><a style="border:none;" href="http://www.blogger.com/delete-comment.g?blogID=8939125534858322326&postID=6157325817263024270" title="Delete Comment"><span class="delete-comment-icon">&nbsp;</span></a></span>
+			 </dd>
+			
+ 			 <dt class="comment-data" id="c000000045"><a name="c7419393744203178960"></a>
+				At 
+    <a class="comment-data-link" href="http://blog.linuxconsulting.ro/2010/04/porting-wifi-drivers-to-android.html#c7419393744203178960" title="comment permalink"> May 25, 2012 4:33 PM </a>,
+				<span style="line-height:16px" class="comment-icon blogger-comment-icon"><img src="./PaNiC Random Rant (or how we used to call it  .plan)  Porting WiFi drivers to Android_files/b16-rounded.gif" alt="Blogger" style="display:inline;"></span>&nbsp;<a href="http://www.blogger.com/profile/04781761403729833666" rel="nofollow">ffxx68</a> said...
+			 </dt>
+			 <dd class="comment-body">
+				<p>
+				Hi Pavel, thanks a lot for this helpful tutorial.<br><br>One thing I miss. Once I have the kernel driver, firmware and wpa_supplicant.conf, in order to include these in the AOSP build I should add these copy operations in my full_.mk, I think:<br><br>PRODUCT_COPY_FILES += \<br>        $(LOCAL_PATH)/bcm/dhd.ko:system/lib/modules \<br> $(LOCAL_PATH)/bcm/4329_nvram.txt:system/etc/firmware \<br> $(LOCAL_PATH)/bcm/fw4329.bin:system/etc/firmware \<br> $(LOCAL_PATH)/bcm/wpa_supplicant.conf:system/etc/wifi<br><br>But system/etc/firmware and system/etc/wifi directories aren't created by the standard build, so that isn't enough.<br><br>What do I miss?<br><br> thanks<br> Fabio<br><br>PS - anyone interested - this is the group where we discuss about the platform I'm building for: https://groups.google.com/forum/?fromgroups#!forum/renesas-emev-osp
+				</p>
+				<span class="item-control blog-admin pid-5122431"><a style="border:none;" href="http://www.blogger.com/delete-comment.g?blogID=8939125534858322326&postID=7419393744203178960" title="Delete Comment"><span class="delete-comment-icon">&nbsp;</span></a></span>
+			 </dd>
+			
+ 			 <dt class="comment-data" id="c000000045"><a name="c4848765143936495724"></a>
+				At 
+    <a class="comment-data-link" href="http://blog.linuxconsulting.ro/2010/04/porting-wifi-drivers-to-android.html#c4848765143936495724" title="comment permalink"> July 7, 2012 5:59 PM </a>,
+				<span style="line-height:16px" class="comment-icon blogger-comment-icon"><img src="./PaNiC Random Rant (or how we used to call it  .plan)  Porting WiFi drivers to Android_files/b16-rounded.gif" alt="Blogger" style="display:inline;"></span>&nbsp;<a href="http://www.blogger.com/profile/14252253911548581422" rel="nofollow">Ashwin Bhanushali</a> said...
+			 </dt>
+			 <dd class="comment-body">
+				<p>
+				Hi Techies,<br><br>I had downloaded the android ICS source code from google repositories.<br>I am able to compile and run the source code and build for emulator is working superb.Then I decided to burn on device Huawei Ascend G300 U8818.I had downloaded the Device configuration from github repository.<br>Now I started compiling for Huawei device.<br>When I execute the command make -j4 then I get the following error <br><br><b>make: *** No rule to make target `out/target/product/u8818/obj/STATIC_LIBRARIES/lib_driver_cmd_wext_intermediates/lib_driver_cmd_wext.a', needed by `out/target/product/u8818/obj/EXECUTABLES/wpa_supplicant_intermediates/LINKED/wpa_supplicant'. St</b><br><br>Please help in me.I am googling for almost 15 days but no guide no clues.<br>Thank You.
+				</p>
+				<span class="item-control blog-admin pid-1240720157"><a style="border:none;" href="http://www.blogger.com/delete-comment.g?blogID=8939125534858322326&postID=4848765143936495724" title="Delete Comment"><span class="delete-comment-icon">&nbsp;</span></a></span>
+			 </dd>
+			
+ 			 <dt class="comment-data" id="c000000045"><a name="c5572186149876620627"></a>
+				At 
+    <a class="comment-data-link" href="http://blog.linuxconsulting.ro/2010/04/porting-wifi-drivers-to-android.html#c5572186149876620627" title="comment permalink"> July 7, 2012 6:01 PM </a>,
+				<span style="line-height:16px" class="comment-icon blogger-comment-icon"><img src="./PaNiC Random Rant (or how we used to call it  .plan)  Porting WiFi drivers to Android_files/b16-rounded.gif" alt="Blogger" style="display:inline;"></span>&nbsp;<a href="http://www.blogger.com/profile/14252253911548581422" rel="nofollow">Ashwin Bhanushali</a> said...
+			 </dt>
+			 <dd class="comment-body">
+				<p>
+				Hi Techies,<br><br>I had downloaded the android ICS source code from google repositories.<br>I am able to compile and run the source code and build for emulator is working superb.Then I decided to burn on device Huawei Ascend G300 U8818.I had downloaded the Device configuration from github repository.<br>Now I started compiling for Huawei device.<br>When I execute the command make -j4 then I get the following error <br><br><b>make: *** No rule to make target `out/target/product/u8818/obj/STATIC_LIBRARIES/lib_driver_cmd_wext_intermediates/lib_driver_cmd_wext.a', needed by `out/target/product/u8818/obj/EXECUTABLES/wpa_supplicant_intermediates/LINKED/wpa_supplicant'. St</b><br><br>Please help in me.I am googling for almost 15 days but no guide no clues.<br>Thank You.
+				</p>
+				<span class="item-control blog-admin pid-1240720157"><a style="border:none;" href="http://www.blogger.com/delete-comment.g?blogID=8939125534858322326&postID=5572186149876620627" title="Delete Comment"><span class="delete-comment-icon">&nbsp;</span></a></span>
+			 </dd>
+			
+ 			 <dt class="comment-data" id="c000000045"><a name="c1062236856763626558"></a>
+				At 
+    <a class="comment-data-link" href="http://blog.linuxconsulting.ro/2010/04/porting-wifi-drivers-to-android.html#c1062236856763626558" title="comment permalink"> July 14, 2012 11:20 PM </a>,
+				<span style="line-height:16px" class="comment-icon blogger-comment-icon"><img src="./PaNiC Random Rant (or how we used to call it  .plan)  Porting WiFi drivers to Android_files/b16-rounded.gif" alt="Blogger" style="display:inline;"></span>&nbsp;<a href="http://www.blogger.com/profile/07143979309372840115" rel="nofollow">vemman</a> said...
+			 </dt>
+			 <dd class="comment-body">
+				<p>
+				Thanks a ton!<br>I got wifi running on CyanMobileX custom ROM for Galaxy 551 (GT-I5510)<br><br>THanks
+				</p>
+				<span class="item-control blog-admin pid-661296229"><a style="border:none;" href="http://www.blogger.com/delete-comment.g?blogID=8939125534858322326&postID=1062236856763626558" title="Delete Comment"><span class="delete-comment-icon">&nbsp;</span></a></span>
+			 </dd>
+			
+ 			 <dt class="comment-data" id="c000000045"><a name="c5001944981916394732"></a>
+				At 
+    <a class="comment-data-link" href="http://blog.linuxconsulting.ro/2010/04/porting-wifi-drivers-to-android.html#c5001944981916394732" title="comment permalink"> August 3, 2012 12:23 AM </a>,
+				<span style="line-height:16px" class="comment-icon blogger-comment-icon"><img src="./PaNiC Random Rant (or how we used to call it  .plan)  Porting WiFi drivers to Android_files/b16-rounded.gif" alt="Blogger" style="display:inline;"></span>&nbsp;<a href="http://www.blogger.com/profile/04211074065915360839" rel="nofollow">Mils</a> said...
+			 </dt>
+			 <dd class="comment-body">
+				<p>
+				Hello Nicu,<br><br>Thank you for this tutorial<br>I want to know if are you doing the update for Android 4.x.<br><br>Because I can't do this modifications in Android 4.0.<br><br>Thank you.<br>Best regards,<br>S.K
+				</p>
+				<span class="item-control blog-admin pid-1842005475"><a style="border:none;" href="http://www.blogger.com/delete-comment.g?blogID=8939125534858322326&postID=5001944981916394732" title="Delete Comment"><span class="delete-comment-icon">&nbsp;</span></a></span>
+			 </dd>
+			
+ 			 <dt class="comment-data" id="c000000045"><a name="c3447654775953954047"></a>
+				At 
+    <a class="comment-data-link" href="http://blog.linuxconsulting.ro/2010/04/porting-wifi-drivers-to-android.html#c3447654775953954047" title="comment permalink"> August 9, 2012 2:43 AM </a>,
+				<span style="line-height:16px" class="comment-icon blogger-comment-icon"><img src="./PaNiC Random Rant (or how we used to call it  .plan)  Porting WiFi drivers to Android_files/b16-rounded.gif" alt="Blogger" style="display:inline;"></span>&nbsp;<a href="http://www.blogger.com/profile/04211074065915360839" rel="nofollow">Mils</a> said...
+			 </dt>
+			 <dd class="comment-body">
+				<p>
+				Hello Nicolae,<br><br>Do you have the update for android version 4.X ?<br><br>Thank you.<br><br>Best regards,<br>S.K
+				</p>
+				<span class="item-control blog-admin pid-1842005475"><a style="border:none;" href="http://www.blogger.com/delete-comment.g?blogID=8939125534858322326&postID=3447654775953954047" title="Delete Comment"><span class="delete-comment-icon">&nbsp;</span></a></span>
+			 </dd>
+			
+ 			 <dt class="comment-data" id="c000000045"><a name="c2816765133744958496"></a>
+				At 
+    <a class="comment-data-link" href="http://blog.linuxconsulting.ro/2010/04/porting-wifi-drivers-to-android.html#c2816765133744958496" title="comment permalink"> August 9, 2012 2:43 AM </a>,
+				<span style="line-height:16px" class="comment-icon blogger-comment-icon"><img src="./PaNiC Random Rant (or how we used to call it  .plan)  Porting WiFi drivers to Android_files/b16-rounded.gif" alt="Blogger" style="display:inline;"></span>&nbsp;<a href="http://www.blogger.com/profile/04211074065915360839" rel="nofollow">Mils</a> said...
+			 </dt>
+			 <dd class="comment-body">
+				<p>
+				Hello Nicolae,<br><br>Do you have the update for android version 4.X ?<br><br>Thank you.<br><br>Best regards,<br>S.K
+				</p>
+				<span class="item-control blog-admin pid-1842005475"><a style="border:none;" href="http://www.blogger.com/delete-comment.g?blogID=8939125534858322326&postID=2816765133744958496" title="Delete Comment"><span class="delete-comment-icon">&nbsp;</span></a></span>
+			 </dd>
+			
+ 			 <dt class="comment-data" id="c000000045"><a name="c7965584519690975396"></a>
+				At 
+    <a class="comment-data-link" href="http://blog.linuxconsulting.ro/2010/04/porting-wifi-drivers-to-android.html#c7965584519690975396" title="comment permalink"> August 14, 2012 7:14 PM </a>,
+				<span style="line-height:16px" class="comment-icon blogger-comment-icon"><img src="./PaNiC Random Rant (or how we used to call it  .plan)  Porting WiFi drivers to Android_files/b16-rounded.gif" alt="Blogger" style="display:inline;"></span>&nbsp;<a href="http://www.blogger.com/profile/08232153615038357301" rel="nofollow">Nicu Pavel</a> said...
+			 </dt>
+			 <dd class="comment-body">
+				<p>
+				I will start working on ICS version in a few weeks. But probably rowboat, cyanogen might already have these patches ported to ICS so it's worth checking them out too.<br>Regarding the issue where wifi automatically turns off after enabling it, it's because it can't ifup the interface (missing firmware, driver has other name for interface instead of wlan0). Check logcat it should tell you more.
+				</p>
+				<span class="item-control blog-admin pid-628541820"><a style="border:none;" href="http://www.blogger.com/delete-comment.g?blogID=8939125534858322326&postID=7965584519690975396" title="Delete Comment"><span class="delete-comment-icon">&nbsp;</span></a></span>
+			 </dd>
+			
+ 			 <dt class="comment-data" id="c000000045"><a name="c2612103597386563486"></a>
+				At 
+    <a class="comment-data-link" href="http://blog.linuxconsulting.ro/2010/04/porting-wifi-drivers-to-android.html#c2612103597386563486" title="comment permalink"> October 8, 2012 5:58 PM </a>,
+				<span style="line-height:16px" class="comment-icon blogger-comment-icon"><img src="./PaNiC Random Rant (or how we used to call it  .plan)  Porting WiFi drivers to Android_files/b16-rounded.gif" alt="Blogger" style="display:inline;"></span>&nbsp;<a href="http://www.blogger.com/profile/04781761403729833666" rel="nofollow">ffxx68</a> said...
+			 </dt>
+			 <dd class="comment-body">
+				<p>
+				Hi Nicu,<br><br>I've amanged to complete the integration on GB and now I'm porting to JB. issue is that in GB I used to have the "wifi" option enabled under wireless settings, even before integrating the driver etc, while I miss this in JB. Any idea what could be missing?<br><br>thanks again<br>Fabio
+				</p>
+				<span class="item-control blog-admin pid-5122431"><a style="border:none;" href="http://www.blogger.com/delete-comment.g?blogID=8939125534858322326&postID=2612103597386563486" title="Delete Comment"><span class="delete-comment-icon">&nbsp;</span></a></span>
+			 </dd>
+			
+ 			 <dt class="comment-data" id="c000000045"><a name="c1082650733662247740"></a>
+				At 
+    <a class="comment-data-link" href="http://blog.linuxconsulting.ro/2010/04/porting-wifi-drivers-to-android.html#c1082650733662247740" title="comment permalink"> October 8, 2012 6:56 PM </a>,
+				<span style="line-height:16px" class="comment-icon blogger-comment-icon"><img src="./PaNiC Random Rant (or how we used to call it  .plan)  Porting WiFi drivers to Android_files/b16-rounded.gif" alt="Blogger" style="display:inline;"></span>&nbsp;<a href="http://www.blogger.com/profile/04781761403729833666" rel="nofollow">ffxx68</a> said...
+			 </dt>
+			 <dd class="comment-body">
+				<p>
+				Ok, got it. In order for the WiFi Settings sub-option to show up, the sfollowing file needs to be present in the build:<br><br>system/etc/permissions/android.hardware.wifi.xml<br><br>In ICS or JB we do something like this in device.mk to copy the file:<br><br>PRODUCT_COPY_FILES += \<br>    frameworks/base/data/etc/android.hardware.wifi.xml:system/etc/permissions/android.hardware.wifi.xml<br><br>Content is simply something like:<br><br><br><br><br>    <br><br><br><br> - manu Thanks to Viesh , from https://groups.google.com/d/msg/android-porting/KDMjAcfPUtc/z9yYLPO9MowJ -
+				</p>
+				<span class="item-control blog-admin pid-5122431"><a style="border:none;" href="http://www.blogger.com/delete-comment.g?blogID=8939125534858322326&postID=1082650733662247740" title="Delete Comment"><span class="delete-comment-icon">&nbsp;</span></a></span>
+			 </dd>
+			
+ 			 <dt class="comment-data" id="c000000045"><a name="c1069594603832324350"></a>
+				At 
+    <a class="comment-data-link" href="http://blog.linuxconsulting.ro/2010/04/porting-wifi-drivers-to-android.html#c1069594603832324350" title="comment permalink"> October 11, 2012 4:20 PM </a>,
+				<span style="line-height:16px" class="comment-icon blogger-comment-icon"><img src="./PaNiC Random Rant (or how we used to call it  .plan)  Porting WiFi drivers to Android_files/b16-rounded.gif" alt="Blogger" style="display:inline;"></span>&nbsp;<a href="http://www.blogger.com/profile/08232153615038357301" rel="nofollow">Nicu Pavel</a> said...
+			 </dt>
+			 <dd class="comment-body">
+				<p>
+				Thanks for letting me know. Also for some reason the content of android.hardware.wifi doesn't show up in comments.
+				</p>
+				<span class="item-control blog-admin pid-628541820"><a style="border:none;" href="http://www.blogger.com/delete-comment.g?blogID=8939125534858322326&postID=1069594603832324350" title="Delete Comment"><span class="delete-comment-icon">&nbsp;</span></a></span>
+			 </dd>
+			
+			</dl>
+			<p>
+				<a class="comment-link" href="http://www.blogger.com/comment.g?blogID=8939125534858322326&postID=7825643526087282750">Post a Comment</a>
+			</p>
+			<p id="postfeeds">Subscribe to Post Comments [<a target="_blank" href="http://blog.linuxconsulting.ro/feeds/7825643526087282750/comments/default" type="application/atom+xml">Atom</a>]</p>
+				    
+			
+			
+			<p>
+				<a href="http://blog.linuxconsulting.ro/">&lt;&lt; Home</a>
+			</p>
+			
+			<!-- End #comments -->
+			</div>
+			
+			<!-- END DIV CONTENT -->
+					
+
+		</div>
+	<div class="sidenav">
+		<h1>Search</h1>
+			<!-- Google Custom Search Element -->
+			<div id="cse" style="width:100%;"><div class="gsc-control-cse gsc-control-cse-vi"><div class="gsc-control-wrapper-cse" dir="ltr"><form class="gsc-search-box" accept-charset="utf-8"><table cellspacing="0" cellpadding="0" class="gsc-search-box"><tbody><tr><td class="gsc-input"><input autocomplete="off" type="text" size="10" class=" gsc-input" name="search" title="tìm kiếm" id="gsc-i-id1" dir="ltr" spellcheck="false" style="outline: none; background-image: url(http://www.google.com/cse/intl/vi/images/google_custom_search_watermark.gif); background-color: rgb(255, 255, 255); background-position: 0% 50%; background-repeat: no-repeat no-repeat;"></td><td class="gsc-search-button"><input type="button" value="Tìm kiếm" class="gsc-search-button" title="tìm kiếm"></td><td class="gsc-clear-button"><div class="gsc-clear-button" title="xoá các kết quả">&nbsp;</div></td></tr></tbody></table><table cellspacing="0" cellpadding="0" class="gsc-branding"><tbody><tr><td class="gsc-branding-user-defined"></td><td class="gsc-branding-text"><div class="gsc-branding-text">được cung cấp bởi</div></td><td class="gsc-branding-img"><img src="./PaNiC Random Rant (or how we used to call it  .plan)  Porting WiFi drivers to Android_files/small-logo.png" class="gsc-branding-img"></td></tr></tbody></table></form><div class="gsc-tabsAreaInvisible"><div class="gsc-tabHeader gsc-inline-block gsc-tabhActive">Tìm kiếm tùy chỉnh</div><span class="gs-spacer"> </span></div><div class="gsc-tabsAreaInvisible"></div><div class="gsc-above-wrapper-area-invisible"><table cellspacing="0" cellpadding="0" class="gsc-above-wrapper-area-container"><tbody><tr><td class="gsc-result-info-container"><div class="gsc-result-info-invisible"></div></td></tr></tbody></table></div><div class="gsc-adBlockInvisible"></div><div class="gsc-wrapper"><div class="gsc-adBlockInvisible"></div><div class="gsc-resultsbox-invisible"><div class="gsc-resultsRoot gsc-tabData gsc-tabdActive"><table cellspacing="0" cellpadding="0" class="gsc-resultsHeader"><tbody><tr><td class="gsc-twiddleRegionCell"><div class="gsc-twiddle"><div class="gsc-title">Web</div></div><div class="gsc-stats"></div><div class="gsc-results-selector gsc-all-results-active"><div class="gsc-result-selector gsc-one-result" title="hiển thị một kết quả">&nbsp;</div><div class="gsc-result-selector gsc-more-results" title="hiển thị thêm nhiều kết quả">&nbsp;</div><div class="gsc-result-selector gsc-all-results" title="hiển thị tất cả kết quả">&nbsp;</div></div></td><td class="gsc-configLabelCell"></td></tr></tbody></table><div><div class="gsc-expansionArea"></div></div></div></div></div></div></div></div>
+			<script src="./PaNiC Random Rant (or how we used to call it  .plan)  Porting WiFi drivers to Android_files/jsapi" type="text/javascript"></script>
+			<script type="text/javascript">
+			  google.load('search', '1');
+			  google.setOnLoadCallback(function(){
+			     new google.search.CustomSearchControl('003699187224412910091:-j_oeozcme4').draw('cse');
+			  }, true);
+	          </script><script src="./PaNiC Random Rant (or how we used to call it  .plan)  Porting WiFi drivers to Android_files/saved_resource(1)" type="text/javascript"></script><link href="./PaNiC Random Rant (or how we used to call it  .plan)  Porting WiFi drivers to Android_files/default+vi.css" type="text/css" rel="stylesheet"><script src="./PaNiC Random Rant (or how we used to call it  .plan)  Porting WiFi drivers to Android_files/default+vi.I.js" type="text/javascript"></script>
+		  <h1>Previous Posts</h1>
+  
+		  <ul id="recently">
+		  
+			<li><a href="http://blog.linuxconsulting.ro/2010/05/using-both-memory-controller-with.html">Using both memory controllers with SPARSE_MEM on A...</a></li>
+		  
+			<li><a href="http://blog.linuxconsulting.ro/2010/05/html5-hex-grid-with-mouse-mapping.html">HTML5 Hex Grid with mouse mapping</a></li>
+		  
+			<li><a href="http://blog.linuxconsulting.ro/2010/04/tslib-ported-to-android-for-touchscreen.html">TSLib ported to Android for touchscreen calibratio...</a></li>
+		  
+			<li><a href="http://blog.linuxconsulting.ro/2009/11/irrepressible-bing.html">The irrepressible ... Bing</a></li>
+		  
+			<li><a href="http://blog.linuxconsulting.ro/2009/08/qmake-with-visual-studio-generating.html">QMake with Visual Studio: Generating debug informa...</a></li>
+		  
+			<li><a href="http://blog.linuxconsulting.ro/2009/06/lcdproc-053-released.html">lcdproc 0.5.3 released and ubuntu package for pico...</a></li>
+		  
+			<li><a href="http://blog.linuxconsulting.ro/2009/06/using-video-ram.html">Using video RAM ...</a></li>
+		  
+			<li><a href="http://blog.linuxconsulting.ro/2009/06/highjacking-library-calls.html">Hijacking library calls</a></li>
+		  
+			<li><a href="http://blog.linuxconsulting.ro/2008/05/ubuntu-804-linux-on-macbook-air.html">Ubuntu  (8.04) Linux on MacBook Air (updated)</a></li>
+		  
+			<li><a href="http://blog.linuxconsulting.ro/2007/10/new-monitor-new-desktop.html">New monitor, new desktop.</a></li>
+		  
+		  </ul>
+  
+		    
+
+	</div>
+
+	<div class="clearer"><span></span></div>
+
+	</div>
+
+</div><div class="SkipThisFixedPosition main-iframe-wrapper" id="main-iframe-wrapper" background="chrome-extension://ejpbbhjlbipncjklfjjaedaieimbmdda/screenShot.png" style="z-index: 2147483644; top: 0px; left: 0px; margin: 0px; line-height: 0; display: none !important; width: 100%; height: 34px; position: fixed;"></div>
+
+
+
+<div class="footer">© 2007 - 2011 &nbsp; <a href="http://blog.linuxconsulting.ro/2010/04/index.html">Nicu Pavel</a>. Valid <a href="http://jigsaw.w3.org/css-validator/check/referer">CSS</a> &amp; <a href="http://validator.w3.org/check?uri=referer">XHTML</a>.
+
+</div>
+
+
+
+<script type="text/javascript" src="./PaNiC Random Rant (or how we used to call it  .plan)  Porting WiFi drivers to Android_files/4181124240-csitail.js"></script>
+<script type="text/javascript">BLOG_initCsi('classic_blogspot');</script>
+
+<div id="toolbar_measurer" class="SkipThisFixedPosition" style="position: fixed; bottom: 0px; display: block;"></div><table cellspacing="0" cellpadding="0" style="width: 209px; display: none; top: 171px; left: 1041px; position: absolute;" class="gstl_0 gssb_c"><tbody><tr><td class="gssb_f"></td><td class="gssb_e" style="width: 100%;"></td></tr></tbody></table><div id="mainContainer_CTID"><div class="fixedDiv UrlGadgetsDiv" style="position: fixed; left: 0px; z-index: 2147483640; top: 34px !important;" fixed_managed="2"></div><div class="fixedDiv SkipThisFixedPosition GeneralGadgetsDiv" style="position: fixed; left: 0px; z-index: 2147483644; width: 100%; top: 34px !important;"></div></div><div class="SkipThisFixedPosition top-iframe-wrapper" style="width: 100%; height: 34px; position: fixed; z-index: 2147483647; left: 0px; display: none; top: 0px !important;"><iframe class="TOOLBAR_IFRAME" id="T_0.1618320362176746" frameborder="0" scrolling="no" style="width: 100%; height: 100%; min-height: 100%; line-height: 0; position: absolute; left: 0px; border-bottom-width: 1px; border-bottom-style: solid; border-bottom-color: rgba(0, 0, 0, 0.294118); margin: 0px !important; display: none; top: 0px !important;" src="./PaNiC Random Rant (or how we used to call it  .plan)  Porting WiFi drivers to Android_files/container.htm"></iframe></div></body><span id="skype_highlighting_settings" display="none" autoextractnumbers="1"></span><object id="skype_plugin_object" location.href="http://blog.linuxconsulting.ro/2010/04/porting-wifi-drivers-to-android.html" location.hostname="blog.linuxconsulting.ro" style="position: absolute; visibility: hidden; left: -100px; top: -100px;" width="0" height="0" type="application/x-vnd.skype.click2call.chrome.5.7.0"></object></html>

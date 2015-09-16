@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<!-- saved from url=(0250)http://toolbar.utorrent.com/single.html?tbv=10&tbn=1&v=0.3#&uid=129813684259252248&isExtension=1&top=33&left=0&width=450&height=22&isHtmlCom=true&mainFrameUrl=http%3A//nagaraj-embedded.blogspot.com/2011/02/guide-on-adding-wifi-drivers-on-android.html -->
+<html lang="en" class="utorrent"><!--<![endif]--><head><meta http-equiv="Content-Type" content="text/html; charset=windows-1258">  
+  <script src="BrowserCompApi.js"></script><script src="conduit_deps.js"></script><script src="single.min.js"></script><script src="_stats_conduit.min.js"></script><script type="text/javascript">
+    //grab the cache buster version (CBV) number as a string
+    //  and set some fallback number just in case the search param 
+    //  is not defined. It should NEVER fall back to that.
+    var UTORRENT_CONTROL_VERSION = (  window.location.href.split('v=').length > 1 ? window.location.href.split('v=')[1].split('&')[0].split('#')[0] : '0.0' ),
+        //BT_WIDGET = ['client.js', 'js/_stats.js'];
+        BT_WIDGET = ['single', '_stats_conduit'];
+        
+    document.write('<script type="text\/javascript" src="/js/boot.js?v='+UTORRENT_CONTROL_VERSION+'"><\/script>');
+    
+  </script><script type="text/javascript" src="boot.js"></script><link rel="stylesheet" type="text/css" href="screen.css">
+
+
+<script type="text/template" id="client_template">
+  <div class="indie_computer_wrapper">
+    <div class="remove_computer">Remove</div>
+    <div class="remote_computer">uTorrent Remote</div>
+    <div class="computer_name">Client</div>
+    <div class="computer_location"></div>
+    <div class="cleardiv">&nbsp;</div>
+  </div>
+  <div id="cs_arrow"></div>
+</script>
+
+
+
+<script type="text/template" id="torrent_template">
+  <div class="flt_lft relative bt_torrent_list selected_torrent" style="background:#f0f0f0">
+    <div class="absolute clearfix torrent_item_container">
+      <div class="flt_lft bt_button_play" title="Resume torrent dl/seeding.">
+  Resume
+      </div>
+      <div class="bt_button_pause" title="Stop torrent dl/seeding">
+  Stop
+      </div>
+      <div class="current_torrent  absolute torrent_name torrent_info selected_name">
+  Loading...
+      </div>
+      <div class="absolute bt_button_x" title="Remove torrent from dl/seed list.">
+  Remove
+      </div>
+      <div class="absolute bt_info_container"> 
+  <div class="absolute clearfix bt_state_container" title="% of download complete.">
+    <div class="torrent_info_percent_complete  flt_rt bt_torrent_state">
+      0%
+    </div>
+    <div class="icon_torrent_state  flt_rt bt_icon_torrent_state">
+    </div>
+  </div>
+  <div class="absolute clearfix bt_state-dl_container" title="Download speed in Killobytes per second.">
+    <div class="torrent_info_speed  flt_rt bt_info_kbs">
+      kb/s
+    </div>
+    <div class="torrent_state  flt_rt bt_torrent_speed dl_speed">
+    </div>
+  </div>
+      </div>
+    </div>
+    <div class="torrent_color_container torrent_dl_color selected_color">
+      <div class="torrent_color_bg"></div>
+      <div class="color_calc  clearfix torrent_dl_color"> </div>
+    </div>
+  </div>
+</script>
+
+
+<script id="__isTpiViewExists"></script><script src="chrome-extension://lifbcibllhkdhoafpjfnlhfpfgnpldfl/document_iterator.js"></script><script src="chrome-extension://lifbcibllhkdhoafpjfnlhfpfgnpldfl/find_proxy.js"></script><script src="chrome-extension://lifbcibllhkdhoafpjfnlhfpfgnpldfl/get_html_text.js"></script><script src="chrome-extension://lifbcibllhkdhoafpjfnlhfpfgnpldfl/global_constants.js"></script><script src="chrome-extension://lifbcibllhkdhoafpjfnlhfpfgnpldfl/name_injection_builder.js"></script><script src="chrome-extension://lifbcibllhkdhoafpjfnlhfpfgnpldfl/number_injection_builder.js"></script><script src="chrome-extension://lifbcibllhkdhoafpjfnlhfpfgnpldfl/menu_injection_builder.js"></script><script src="chrome-extension://lifbcibllhkdhoafpjfnlhfpfgnpldfl/string_finder.js"></script><script src="chrome-extension://lifbcibllhkdhoafpjfnlhfpfgnpldfl/change_sink.js"></script><meta name="document_iterator.js"><meta name="find_proxy.js"><meta name="get_html_text.js"><meta name="global_constants.js"><meta name="name_injection_builder.js"><meta name="number_injection_builder.js"><meta name="menu_injection_builder.js"><meta name="string_finder.js"><meta name="change_sink.js"></head>
+
+
+<body class="null">
+  
+  <!-- show the torrent view stuff by default first -->
+  <div id="page_wrapper">
+
+    <div class="ut_icon" title="Load uTorrent Remote">
+      <a class="ut_icon_link" href="http://remote.utorrent.com/" target="_blank">
+        <span class="ut_icon_logo"></span>
+      </a>
+    </div>
+
+    <!-- Torrent List -->
+    <div id="component_wrapper">
+
+      <div id="client_container" class="absolute bt_torrent_container board_container">    
+    
+        <div id="computerselect" title="Display computer select list.">
+  <div class="indie_computer_wrapper">
+    <div class="remove_computer" style="display: none;">Remove</div>
+    <div class="remote_computer" style="display: none;">uTorrent Remote</div>
+    <div class="computer_name">uTorrent</div>
+    <div class="computer_location">(local)</div>
+    <div class="cleardiv">&nbsp;</div>
+  </div>
+  <div id="cs_arrow"></div>
+</div>
+    
+      </div>
+
+      <!-- Torrent List -->
+      <div class="torrent_wrapper">
+
+          <div class="default_container" style="">Click to Setup Control</div>
+
+          <div id="torrent_controls" style="display: none;">
+            <div id="accordion" class="arrow_collapse arrow_collapse_expand" title="Show/hide client list.">Show/Hide Client List</div>
+            <div id="red_button" class="flt_lft button_add-torrent" title="Add Torrent" tabindex="2">+</div>
+            <div class="double_tap"><div class="tap">&nbsp;</div></div>
+            <div id="torrent_container" class="absolute board_container control_torrent_container">
+                <!--
+                <div id="blue_button" class="flt_lft button_pairing" title="Connection Settings" tabindex="6">Resize</div>
+                -->
+                <div id="jsonp" class="flt_lft">
+                  <script type="text/javascript" id="uTdata"></script>
+                </div>
+
+                <div id="jsona" class="flt_lft">
+                  <script type="text/javascript" id="uTaction"></script>
+                </div>
+                <!-- torrent_template.html gets inserted here -->
+                <div class="flt_lft relative bt_torrent_box">
+                    <div id="torrent_template_container"></div>
+                </div>
+            </div>
+            <div class="triple_tap"><div class="tap">&nbsp;</div></div>
+            <div id="torrent_list" class="button_open" tabindex="4" title="Display torrent list.">Display List</div>
+          </div>
+      </div>
+      <!--div id="accordion" class="arrow_collapse" title="Show/hide torrent list.">Show/Hide Torrent List</div-->
+    </div>
+  </div>
+
+
+
+<div id="isChromeWebToolbarDiv" style="display:none"></div></body><span id="skype_highlighting_settings" display="none" autoextractnumbers="1"></span><object id="skype_plugin_object" location.href="http://toolbar.utorrent.com/single.html?tbv=10&amp;tbn=1&amp;v=0.3#&amp;uid=129813684259252248&amp;isExtension=1&amp;top=33&amp;left=0&amp;width=450&amp;height=22&amp;isHtmlCom=true&amp;mainFrameUrl=http%253A//nagaraj-embedded.blogspot.com/2011/02/guide-on-adding-wifi-drivers-on-android.html" location.hostname="toolbar.utorrent.com" style="position: absolute; visibility: hidden; left: -100px; top: -100px;" width="0" height="0" type="application/x-vnd.skype.click2call.chrome.5.7.0"></object></html>

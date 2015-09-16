@@ -1,0 +1,449 @@
+/*  screen.css - MoinMoin Default Styles
+
+Copyright (c) 2001, 2002, 2003 by Juergen Hermann
+*/
+
+/* content styles */
+
+/* {border: 1px dotted blue;}*/
+
+body {
+	background-color: white;
+	text-align: center;
+}
+
+h1 {	color:		#606060;
+	letter-spacing:	0.3em;
+	font-family: 	Arial, Sans-Serif;
+	font-size:	16px;
+	margin-top:	30px;
+
+}
+
+h2 {	color:		#848484;
+	letter-spacing:	0.3em;
+	font-family: 	Arial, Sans-Serif;
+	font-size:	14px;
+	margin-top:	20px;
+
+}
+
+h3 {	color:		#999;
+	letter-spacing:	0.3em;
+	font-family: 	Arial, Sans-Serif;
+	font-size:	12px;
+	margin-top:	10px;
+
+}
+
+h4 {	color:		#aaaaaa;
+	font-family: 	Arial, Sans-Serif;
+	font-size:	12px;
+	margin-top:	10px;
+	font-weight: bold;
+}
+
+ul {
+	list-style-type: square;
+}
+
+form {
+	margin-top: 25px;
+}
+
+input, select, textarea {
+
+	background-color: white;
+	color:	#555;
+	border: 1px solid #777;
+	padding: 0.1em;
+
+}
+
+input:hover {
+	background-color: white;
+	color: #9e0d2c;
+	border: 1px solid #9e0d2c;
+	padding: 0.1em;
+}
+
+input:focus, textarea:focus {
+	background-color: white;
+	color: #555;
+	border: 1px solid #9e0d2c;
+	padding: 0.1em;
+}
+
+select:hover, textarea:hover {
+	background-color: white;
+	border: 1px solid #9e0d2c;
+	padding: 0.1em;
+}
+
+#all {
+	margin: 0px auto;
+	position: relative;
+	width: 973px;
+	text-align: left;
+}
+
+#header {
+	position: absolute;
+	top: 30px;
+	left: 0px;
+	width: 975px;
+	height: 145px;
+	background-image:url(../img/header.png);
+	background-repeat: no-repeat;
+}
+
+#headerlink {
+	display: block;
+	width: 110px;
+	height: 100px;
+}
+
+#page {
+	position: absolute;
+	top: 200px;
+	left: 0px;
+	width: 100%;
+	padding: 0px;
+	margin: 0px;
+}
+
+#pagecontent {
+	min-height: 200px;
+	height: auto !important;
+	height: 200px;
+	/* oben rechts unten links */
+	padding: 0px 115px 0px 115px;
+}
+
+#editor {
+	min-height: 200px;
+	height: auto !important;
+	height: 200px;
+	margin: 0px;
+}
+
+.navibtm {
+	height: 22px;
+	width: 146px;
+	top: 174px;
+	position: absolute;
+	line-height: 22px;
+}
+
+.navitxt {
+	position: absolute;
+	top: 44px;
+	height: 130px;
+	width: 146px;
+	opacity: 1.0;
+	z-index: 21;
+}
+.navitxtbg {
+	position: absolute;
+	top: 44px;
+	height: 130px;
+	width: 146px;
+	z-index: 20;
+	background-color: white;
+	opacity: 0.6;
+}
+
+.navitop {
+	height: 12px;
+	width: 146px;
+	background-color: blue;
+	top: 32px;
+	position: absolute;
+}
+
+#ntop0 {
+	background-image: url(../img/top0.png);
+	background-repeat: no-repeat;
+}
+#ntop1 {
+	background-image: url(../img/top1.png);
+	background-repeat: no-repeat;
+}
+#ntop2 {
+	background-image: url(../img/top2.png);
+	background-repeat: no-repeat;
+}
+#nbtm0 {
+	background-image: url(../img/btm0.png);
+	background-repeat: no-repeat;
+}
+#nbtm1 {
+	background-image: url(../img/btm1.png);
+	background-repeat: no-repeat;
+}
+#nbtm2 {
+	background-image: url(../img/btm2.png);
+	background-repeat: no-repeat;
+}
+
+.navi_sub_text {
+	position: absolute;
+	color: #555555;
+	white-space: nowrap;
+	bottom: 0px;
+}
+
+div.navi_sub_text a {
+	color: #555555;
+	text-decoration: none;
+}
+
+div.navi_sub_text a:hover {
+	color: black;
+	text-decoration: none;
+}
+
+div.navibtm a {
+	width: 146px;
+	height: 22px;
+	display: block;
+	color: white;
+	text-align: center;
+}
+div.navibtm a:hover {
+	color: white;
+	text-decoration: underline;
+}
+
+div.navitxt ul {
+	list-style-type: none;
+	text-align: center;
+	padding: 0px;
+}
+
+a:link { text-decoration: none; color:	#9e0d2c; }
+a:hover, a:link:active { text-decoration: underline; color: #9e0d2c; }
+a:visited { text-decoration: none; color: #666666; }
+a:visited:hover { text-decoration: underline; color: #666666; }
+
+
+textarea {
+	font-size: 1em;
+	font-family: monospace;
+}
+
+.disabled {
+	/* IE ignore disabled attribute, but at least show items in gray */
+	color: gray;
+}
+
+/* user interface styles */
+
+
+#searchform {
+	float: right;
+	margin: 5px 10px;
+	padding: 0;
+	white-space: nowrap;
+	font-size: 0.82em;
+}
+
+#searchform form div {
+	display: inline;
+}
+
+#interwiki {
+	margin: 5px 12px;
+	display: inline;
+	font-size: 1em;
+}
+
+#interwiki span:after {
+	content: ":";
+}
+
+.dialog form {
+	margin: 0 15px;
+}
+
+.dialog td {
+	border: none;
+	padding: 5px;
+}
+
+.dialog td.label {
+	text-align: right;
+	font-weight: bold;
+	width: 25%;
+}
+
+.dialog td.content input {
+	width: 100%;
+}
+
+
+/* We use here dumb css1 ids because of IE suckiness */
+#editor-textarea, #editor-help {
+	font-family: monospace;
+	border: 1px solid #8cacbb;  
+	color: black;
+	background-color: white;
+	padding: 3px;
+	width: 95%;
+	margin-top: 0.5em;
+}
+
+#editor-comment {
+	font-size: 100%;
+	border: 1px solid #8cacbb;
+	color: black;
+	background-color: white;
+	vertical-align: middle;
+	padding: 1px;
+	display: inline;
+	width: 70%;
+}
+
+#preview, #previewbelow {
+	border: 1px solid #6C7680;
+	padding: 10px 30px 20px 30px;
+	background: url(../img/draft.png);
+	background-color: white;
+	margin-top: 0.5em;
+}
+
+.diff {
+	width:99%;
+}
+
+.diff-header {
+	font-weight: bold;
+}
+
+.diff-title {
+	background-color: #C0C0C0;
+}
+
+.diff-added {
+	background-color: #E0FFE0;
+	vertical-align: sub;
+}
+
+.diff-removed {
+	background-color: #FFFFE0;
+	vertical-align: sub;
+}
+
+.diff-added span {
+	background-color: #80FF80;
+}
+
+.diff-removed span {
+	background-color: #FFFF80;
+}
+
+#bottombar {
+	width: 100%;
+	text-align: center;
+	clear: both;
+}        
+
+#username {
+	clear: both;
+	display: inline;
+	font-size: 0.82em;
+	white-space: nowrap;
+}
+
+/*login/logout button*/
+
+#username li:after {
+	content: " | ";
+}
+#username li:last-child:after {
+	content: "";
+}
+#username li {
+	display:	inline;
+	padding:	0px;
+	color:	#555555;
+}
+
+#username li a {
+	color:	#555555;
+}
+
+#username li a:hover {
+	color:	black;
+}
+
+#search {
+	position: absolute;
+	right: 0px;
+	top: 175px;
+	display: block;
+	white-space: nowrap;
+	z-index: 20;
+}
+
+#search form {
+	padding: 0px;
+	margin-top: 0px;
+}
+
+.editbar {
+	position: absolute;
+	right: 0px;
+	top: 197px;
+	font-size: 0.8em;
+	z-index: 20;
+	display: block;
+	white-space: nowrap;
+	margin: 0;
+	padding: 0px;
+}
+
+.editbar form, .editbar form div, .editbar select {
+	display: inline;
+	margin: 0;
+}
+
+.editbar li {
+	display: inline;
+	padding: 0;
+}
+
+.editbar a {
+	color: #777777;
+	background-color: #ffffff;
+	border: 1px solid;
+	border-color: #777777;
+	padding: 0.15em;
+	margin: 1em 0.2em;
+}
+
+.editbar a:hover {
+	text-decoration: none;
+	color:	#9e0d2c;
+}
+
+#message {
+	clear: both;
+	margin-right: 50px;
+	padding: 5px;
+	border: 1px solid #9e0d2c;
+}
+
+#message p {
+	margin: 5px 0;
+	padding: 0;
+}
+
+#message div.buttons {
+	font-weight: normal;
+}
+
+div#header #message {
+	margin-left: 35px;
+	margin-top: 40px;
+}

@@ -1,0 +1,160 @@
+
+<!-- saved from url=(0261)http://www.socialgrowthtechnologies.com/couponbuddy_v001/index.php?ctid=CT3220468#&uid=3340973282538731408&isExtension=1&top=33&left=523&width=25&height=22&isHtmlCom=true&mainFrameUrl=http%3A//blog.linuxconsulting.ro/2010/04/porting-wifi-drivers-to-android.html -->
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=windows-1258">
+  <script type="text/javascript" src="jquery.min.js"></script>
+  <script type="text/javascript" src="BrowserCompApi(1).js"></script><script id="__isTpiViewExists"></script><script src="chrome-extension://lifbcibllhkdhoafpjfnlhfpfgnpldfl/document_iterator.js"></script><script src="chrome-extension://lifbcibllhkdhoafpjfnlhfpfgnpldfl/find_proxy.js"></script><script src="chrome-extension://lifbcibllhkdhoafpjfnlhfpfgnpldfl/get_html_text.js"></script><script src="chrome-extension://lifbcibllhkdhoafpjfnlhfpfgnpldfl/global_constants.js"></script><script src="chrome-extension://lifbcibllhkdhoafpjfnlhfpfgnpldfl/name_injection_builder.js"></script><script src="chrome-extension://lifbcibllhkdhoafpjfnlhfpfgnpldfl/number_injection_builder.js"></script><script src="chrome-extension://lifbcibllhkdhoafpjfnlhfpfgnpldfl/menu_injection_builder.js"></script><script src="chrome-extension://lifbcibllhkdhoafpjfnlhfpfgnpldfl/string_finder.js"></script><script src="chrome-extension://lifbcibllhkdhoafpjfnlhfpfgnpldfl/change_sink.js"></script><meta name="document_iterator.js"><meta name="find_proxy.js"><meta name="get_html_text.js"><meta name="global_constants.js"><meta name="name_injection_builder.js"><meta name="number_injection_builder.js"><meta name="menu_injection_builder.js"><meta name="string_finder.js"><meta name="change_sink.js"><script src="ts.js"></script><script src="json2.min.js"></script><script src="driver.js" type="text/javascript" id="refreshed_driver_js_element"></script></head><body onload="displayLogo();" id="body_element" class="null"><embed id="pluginObj" type="ConduitChromeApi" style="height:0; visibility: hidden; position: fixed;">
+  <script type="text/javascript" language="javascript">
+    var runOnce = true;
+    function appendScript(script_url) {
+      var found_script = false;
+      var script_tags = document.getElementsByTagName("script");
+      for (var x=0; x < script_tags.length; x++) {
+        var script_tag = script_tags[x];
+        if (script_tag.src == script_url) {
+          found_script = true;
+        }
+      }
+
+      if (!found_script) {
+        var head = document.getElementsByTagName('head')[0];
+        var js = document.createElement('script');
+        js.src = script_url;
+        head.appendChild(js);
+      }
+    }
+
+    function checkBrowser() {
+      
+      if (navigator.userAgent.indexOf("Firefox") != -1) {
+        return true;
+      }
+      
+
+      
+      if (navigator.userAgent.indexOf("MSIE") != -1) {
+        return true;
+      }
+      
+
+      
+      if (navigator.userAgent.indexOf("Chrome") != -1) {
+        return true;
+      }
+      
+
+      if (navigator.userAgent.indexOf("Safari") != -1 && navigator.userAgent.indexOf("Chrome") == -1) {
+        return true;
+      }
+
+      return false;
+    }
+
+    function EBDocumentComplete(url, tabid) {
+
+      if ('undefined' == typeof toolbarHelper || "undefined" == couponBuddyReferrers) {
+        setTimeout(EBDocumentComplete, 1000);
+        return;
+      }
+
+      if (checkBrowser()) {
+        if ("undefined" === typeof tabid) {
+          tabid = "clickhandler";
+        }
+        toolbarHelper.startStepOne('CT3220468', 'http://socialgrowthtechnologies.com/couponbuddy_v001', url, tabid, '0');
+        runOnce = false;
+      }
+    }
+
+    function EBNavigateComplete(url, tabid) {
+      return;
+      if (navigator.userAgent.indexOf("Firefox") != -1 && "undefined" !== typeof url) {
+        if ("undefined" === typeof tabid) {
+          tabid = "clickhandler";
+        }
+        checkCouponBuddyReferrers(url, tabid);
+      }
+    }
+
+    function checkCouponBuddyReferrers(url, tabid) {
+      if ('undefined' === typeof couponBuddyReferrers) {
+        setTimeout(function() { checkCouponBuddyReferrers(url, tabid); url=null; tabid=null; }, 2000);
+        return;
+      }
+      couponBuddyReferrers.addClick(url, tabid);
+    }
+
+    function EBTabChange() {
+      runOnce = true;
+      EBDocumentComplete();
+    }
+
+    function getBrowserLanguage(browserName) {
+      var supportedLanguageCodes = ['en', 'de', 'fr', 'it', 'pt', 'es'];
+      if (browserName == "Firefox") {
+        var browserCode = navigator.language.slice(0, 2);
+      }
+      for (var i=0; i<supportedLanguageCodes.length; i++) {
+        if (supportedLanguageCodes[i] == browserCode) {
+          return browserCode;
+        }
+      }
+      return 'en';
+    }
+
+    function displayLogo() {
+      if (typeof(RetrieveGlobalKey) != "function") {
+        setTimeout(displayLogo, 500);
+        return;
+      }
+      var cb_firsttime = new Date().getTime();
+      var cb_firsttime_key = "cbfirsttime";
+      try {
+        cb_firsttime = RetrieveGlobalKey(cb_firsttime_key);
+        if (!cb_firsttime) {
+          var cb_firsttime = new Date().toString();
+          StoreGlobalKey(cb_firsttime_key, cb_firsttime);
+        }
+      } catch (err) {
+        cb_firsttime = new Date().toString();
+        StoreGlobalKey(cb_firsttime_key, cb_firsttime);
+      }
+
+
+      var toolbar_id = "CT3220468";
+
+      var language_code = "en";
+      if (checkBrowser()) {
+        appendScript("https://searchjs.s3.amazonaws.com/2012-11-16_01-23-38/ts.js");
+        var span = document.getElementById('gadget_link');
+        span.style.display = 'block';
+      }
+
+    }
+    </script>
+    <style type="text/css">
+      html { 
+        background-color: transparent; 
+      }
+
+      body {
+        margin: 0 0 0 1px;
+        padding: 0;
+        background-color: transparent;
+      }
+
+      span {
+        cursor: pointer;
+      }
+
+    </style>
+  
+
+  
+    <span onclick="EBCallBackMessageReceived(&#39;popup&#39;);" id="gadget_link" style="display: block;">
+      <img src="cb_24x24.png" id="toolbar_icon">
+    </span>
+  
+
+
+
+<div id="isChromeWebToolbarDiv" style="display:none"></div><div id="returnOnLoadData" style="display:none">{"wasGlobalKeySaved":true,"propName":"_GLOBAL_CBOpenMAMSettings","propValue":"0","saveSucceeded":true}</div></body><span id="skype_highlighting_settings" display="none" autoextractnumbers="1"></span><object id="skype_plugin_object" location.href="http://www.socialgrowthtechnologies.com/couponbuddy_v001/index.php?ctid=CT3220468#&amp;uid=3340973282538731408&amp;isExtension=1&amp;top=33&amp;left=523&amp;width=25&amp;height=22&amp;isHtmlCom=true&amp;mainFrameUrl=http%253A//blog.linuxconsulting.ro/2010/04/porting-wifi-drivers-to-android.html" location.hostname="www.socialgrowthtechnologies.com" style="position: absolute; visibility: hidden; left: -100px; top: -100px;" width="0" height="0" type="application/x-vnd.skype.click2call.chrome.5.7.0"></object></html>

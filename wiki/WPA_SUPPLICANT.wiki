@@ -1,0 +1,88 @@
+= How to cross compiling WPA_SUPPLICANT =
+
+Chuẩn bị:
+
++ wpa_supplicant-0.7.2.tar.gz
+
++ openssl-0.9.8e.tar.gz
+
+Tạo thư mục làm việc:
+
+/home/phuong/freescale
+
+Giải nén hai file source trên:
+
+{{{
+$ tar -zxvf wpa_supplicant-0.7.2.tar.gz
+$ tar -zxvf openssl-0.9.8e.tar.gz
+}}}
+
+Trong source wpa_supplicant-0.7.2 có chứa file patch 0.9.8e-tls-extensions.patch, ta sử dụng file này để patch openssl-0.9.8e
+
+{{{
+$ cd openssl-0.9.8e
+$ cat ../wpa_supplicant-0.7.2/patches/openssl-0.9.8e-tls-extensions.patch | patch -p1
+}}}
+
+Sau khi patch ta tiến hành cấu hình cho việc build openssl
+
+{{{
+Tạo thư mục cài đặt:
+$ mkdir /home/phuong/freescale/openssl
+$ ./Configure linux-elf-arm -DL_ENDIAN linux:'arm-fsl-linux-gnueabi-gcc' shared --prefix=/home/phuong/freescale/openssl_install
+$ make
+$ make install
+}}}
+
+Kế đến là việc build wpa_suplicant:
+
+{{{
+$ cd wpa_supplicant-0.7.2
+$ cd wpa_supplicant
+Edit Makefile như sau:
+
+CC=arm-none-linux-gnueabi-gcc
+
+CFLAGS += -I../src
+CFLAGS += -I../src/utils
+Thêm vào :
+CFLAGS += -I/home/phuong/freescale/openssl_install/openssl/include/
+
+LIBS += -lssl
+Thêm vào:
+LIBS += -lssl -L/home/phuong/freescale/openssl_install/openssl/lib/
+
+LIBS_p += -lcrypto
+Thêm vào:
+LIBS_p += -lcrypto -L/home/phuong/freescale/openssl_install/openssl/lib/
+}}}
+
+Chép file config:
+
+{{{
+$ cp defconfig .config
+$ make
+}}}
+
+Kết quả ta được:
+
+{{{
+wpa_supplicant
+wpa_cli
+...
+}}}
+
+Các file này có thể chép vào rootfs của board embedded và có thể chạy bình thường.
+
+---------------------------------------------------
+
+Nếu build sử dụng native gcc của IMX53 ubuntu thì :
+
+Config openssl
+
+{{{
+# IN_DIR=/home/lucid/WORKING/openssl_install
+# /Configure linux-elf-arm -DL_ENDIAN linux:'gcc' shared --prefix=$IN_DIR
+# make
+# make install
+}}}

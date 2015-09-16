@@ -1,0 +1,369 @@
+= BẮT ĐẦU LÀM QUEN VỚI KM233 =
+
+   KM233 là board nhúng chạy hệ điệu hành Linux, các gói phần mềm được Freescale cung cấp miễn phí. Để làm quen với i.MX233 Linux BSP chúng ta có thể tham khảo trước tài liệu "i.MX23_Linux_BSP_UserGuide.pdf" ở link sau:
+  [http://km233.googlecode.com/svn/trunk/doc/i.MX23_Linux_BSP_UserGuide.pdf i.MX23_Linux_BSP_UserGuide.pdf]
+
+----
+
+==CHUẨN BỊ==
+
+   Trước tiên, ta chuẩn bị các gói phần mềm và tiến hành setup môi trường làm việc (quan trọng), các gói phần mềm bao gồm:
+
+===Source Code===
+
+1> Bootlets
+
+   [http://km233.googlecode.com/svn/trunk/src/imx-bootlets-src-17.04.2011-km233.tar.gz imx-bootlets-src-17.04.2011-km233.tar.gz]
+
+2> U-Boot (option)
+
+   [http://km233.googlecode.com/svn/trunk/src/u-boot-2009.08-22022011-km233.tar.gz u-boot-2009.08-22022011-km233.tar.gz]
+
+3> Linux kernel 
+
+   [http://km233.googlecode.com/svn/trunk/src/linux-2.6.35.3-17042011-km233.tar.bz2 linux-2.6.35.3-17042011-km233.tar.bz2]
+
+===Tools===
+
+1> Compiler
+
+   [http://km233.googlecode.com/svn/trunk/tools/gcc-4.4.4-glibc-2.11.1-multilib-1.0.tar.bz2 gcc-4.4.4-glibc-2.11.1-multilib-1.0.tar.bz2]
+
+2> mkimage
+
+   [http://km233.googlecode.com/svn/trunk/tools/uboot-mkimage.zip uboot-mkimage.zip]
+
+3> LTIB (cập nhật sau)
+
+===Rootfs===
+
+   [http://km233.googlecode.com/svn/trunk/rootfs/rootfs-km233-27052011.tar.bz2 rootfs-km233-27052011.tar.bz2]
+
+----
+
+==TẠO CẤU TRÚC THƯ MỤC==
+
+  Cấu trúc thư mục khác nhau tùy theo cách quản lý của từng người, sau đây chúng ta đưa ra ví dụ để tiện cho các bước tiếp theo:
+
+{{{
+/home/freescale
+          |
+          |__km233
+          |    |            
+          |    |__bootloader
+          |    |      |     
+          |    |      |__imx-bootlets-src-17.04.2011-km233.tar.gz 
+          |    |      |
+          |    |      |__u-boot-2009.08-22022011-km233.tar.gz
+          |    | 
+          |    |__kernel
+          |    |    |
+          |    |    |__linux-2.6.35.3-17042011-km233.tar.bz2
+          |    |
+          |    |__rootfs
+          |         |
+          |         |__rootfs-km233-27052011.tar.bz2
+          |
+          |__toolchains
+                 |
+                 |__gcc-4.4.4-glibc-2.11.1-multilib-1.0.tar.bz2 
+                 |
+                 |__uboot-mkimage.zip
+                    
+}}}
+
+=== A> Cài Đặt Toolchains===
+
+{{{
+$ cd /home/freescale/toolchains
+$ gunzip uboot-mkimage.zip
+$ cd uboot-mkimage
+$ make
+$ make install
+$ tar -jxvf gcc-4.4.4-glibc-2.11.1-multilib-1.0.tar.bz2
+}}}
+
+Đến bước này, mỗi khi mở shell để làm việc chúng ta *phải* add đường dẫn của GCC compiler vào biến môi trường PATH, cú pháp như sau:
+
+{{{
+$ export PATH=$PATH:/home/freescale/toolchains/gcc-4.4.4-glibc-2.11.1-multilib-1.0/arm-fsl-linux-gnueabi/bin
+}}}
+
+===B> Build Linux Kernel===
+
+{{{
+Giải nén source kernel
+
+   $ cd /home/freescale/km233/kernel
+   $ tar -jxvf linux-2.6.35.3-17042011-km233.tar.bz2
+   $ cd linux-2.6.35.3-17042011-km233
+
+Cấu hình và build kernel cho KM233
+
+   $ make ARCH=arm CROSS_COMPILE=arm-none-linux-gnueabi- km233_defconfig
+   $ make ARCH=arm CROSS_COMPILE=arm-none-linux-gnueabi- zImage
+}}}
+
+Sau khi build thành công, zImage được sinh ra ở đường dẫn:
+
+{{{
+/home/freescale/km233/kernel/linux-2.6.35.3-17042011-km233/arch/arm/boot/zImage
+}}}
+
+===C> Cấu hình và build bootloader===
+
+1> *u-boot (option)*
+
+KM233 có thể boot trực tiếp Linux sau khi chạy ở tầng bootlets, tuy nhiên chúng ta có thể đưa u-boot vào để tạo thành tầng boot ở giữa. Do u-boot có khả năng load kernel thông qua mạng LAN vì thế đôi khi nó tiện dụng hơn so với việc boot Linux trực tiếp từ bootlets, thường được sử dụng trong quá trình phát triển kernel bởi vì thao tác boot Linux ở giai đoạn này xảy ra thường xuyên hơn.
+
+{{{
+$ cd /home/freescale/km233/bootloader
+$ tar -zxvf u-boot-2009.08-22022011-km233.tar.gz
+$ cd u-boot-2009.08-22022011-km233
+$ make ARCH=arm CROSS_COMPILE=arm-none-linux-gnueabi- mx23_evk_config
+$ make ARCH=arm CROSS_COMPILE=arm-none-linux-gnueabi-
+}}}
+
+Sau khi buil xong, file ảnh u-boot sẽ được sinh ra ở đường dẫn:
+
+{{{
+/home/freescale/km233/bootloader/u-boot-2009.08-22022011-km233
+}}}
+
+2> *bootlets*
+
+Tầng boot thứ 2 có nhiệm vụ boot trực tiếp Linux hoặc u-boot (tham khảo tài liệu "i.MX23_Linux_BSP_UserGuide.pdf", sau đây là trình tự build của source này:
+
+{{{
+$ cd /home/freescale/km233/bootloader
+$ tar -zxvf imx-bootlets-src-17.04.2011-km233.tar.gz
+$ cd imx-bootlets-src-17.04.2011-km233
+}}}
+
+Ta sẽ thấy được script "BUILD.sh" trong thư mục imx-bootlets-src-17.04.2011-km233, ta có thể build thông qua script này. Trước tiên ta cấu hình các tham số để phù hợp với môi trường hiện tại.
+
+Tham số khai báo đường dẫn file ảnh Linux kernel
+
+{{{
+export DFT_IMAGE=/root/kernel/linux-2.6.35.3-dev/arch/arm/boot/zImage
+
+Sửa lại thành:
+
+export DFT_IMAGE=/home/freescale/km233/kernel/linux-2.6.35.3-17042011-km233/arch/arm/boot/zImage
+}}}
+
+File ảnh u-boot (build sẵn) mặc định nằm trong thư mục imx-bootlets-src-17.04.2011-km233, ta có thể chỉ định đường dẫn đến file ảnh đã build ở bước trên:
+
+{{{
+export DFT_UBOOT=./u-boot
+
+Sửa lại thành
+
+export DFT_UBOOT=/home/freescale/km233/bootloader/u-boot-2009.08-22022011-km233/u-boot
+}}}
+
+Các tham số khác để mặc định (không cần thay đổi). Ý nghĩa các tham số này như sau:
+
+{{{
+MACH_TYPE:
+  Machine ID của board, hiện tại ta đang dùng MACH_MX23
+
+CROSS_COMPILE:
+  Khai báo refix của cross compiler, hiện tại ta đang dùng arm-none-linux-gnueabi-
+
+BOARD:
+  Loại board cần sử dụng, hiện tại ta sử dụng stmp378x_dev
+
+DDR_SPEED:
+  Tốc độ clock bus của DDR SDRAM, hiện có 2 tốc độ 133MHz cà 96MHz. Mặc định ta sử dụng 133MHz.
+
+CMDLINE1:
+  Kernel command line, giá trị mặc định là :
+"console=ttyAM0,115200 ssp1=spi1 ssp2=mmc root=/dev/mmcblk0p2 rw rootwait lcd_panel=tvenc_ntsc no_console_suspend"  
+}}}
+
+Sau khi edit xong các tham số, ta có thể tiến hành build bootlets thông qua lệnh sau:
+
+{{{
+$ source BUILD.sh 
+}}}
+
+Nếu thành công, kết quả sau cùng là file ảnh *imx23_linux.sb* và *imx23_uboot.sb* nằm trong thư mục imx-bootlets-src-17.04.2011-km233
+
+----
+
+==FORMAT MMC VÀ CHÉP FILE ẢNH==
+
+===A> Fortmat MicroSD===
+
+Việc định dạng card microSD rất quan trọng, nếu sai hệ thống không thể boot Linux. Thiết nghĩ đây là các bước rất dễ thực hiện sai nếu ta không chú ý kỹ. Sau đây chúng ta sẽ trình bày chi tiết về vấn đề này
+
+Card microSD được định dạng theo 2 partition:
+
+{{{
+1> OnTrack DM6 Aux (code 53)
+2> Linux (ext2 or ext3 code 83) 
+}}}
+
+Cắm đầu đọc thẻ vào máy linux, giả sử thiết bị có tên là /dev/sdb các bước thực hiện được tiến hành như sau:
+
+{{{
+$ In thông tin partition hiện tại:
+$ fdisk /dev/sdb
+
+Ta dùng option p để hiện thông tin partition hiện tại
+
+Command (m for help): p
+
+Disk /dev/sdb: 3963 MB, 3963617280 bytes
+122 heads, 62 sectors/track, 1023 cylinders
+Units = cylinders of 7564 * 512 = 3872768 bytes
+Disk identifier: 0x00000000
+
+   Device Boot      Start         End      Blocks   Id  System
+/dev/sdb2              17        1023     3808474   83  Linux
+}}}
+
+Ở trường hợp trên, ổ đĩa có sẵn partition /dev/sdb2, chúng ta nên xóa parttion này để ổ đĩa trở về trạng thái chưa được chia. Để xóa partition, ta dùng option *d*
+
+{{{
+Command (m for help): d
+Selected partition 2
+
+Command (m for help): p
+
+Disk /dev/sdb: 3963 MB, 3963617280 bytes
+122 heads, 62 sectors/track, 1023 cylinders
+Units = cylinders of 7564 * 512 = 3872768 bytes
+Disk identifier: 0x00000000
+
+   Device Boot      Start         End      Blocks   Id  System
+
+Cập nhật việc xóa partition bằng cách dùng option w
+
+Command (m for help): w
+The partition table has been altered!
+
+Calling ioctl() to re-read partition table.
+Syncing disks.
+}}}
+
+Sau khi xóa hết partition, ta thực hiện các bước sau:
+
+{{{
+Chạy lệnh 'fdisk /dev/sdb'
+ 1> press 'p' để in thông tin partition
+ 2> press 'n' để tạo partition mới
+ 3> press 'p' để chọn primary partition
+ 4> press '1' để chọn partition number
+ 5> press '1' để chọn first cylinder
+ 6> press '+16MB' để chọn last cylinder (dung lượng part1 là 16MB)
+ 7> press 't' để thay đổi partition type cho part1
+ 8> press '53" để chọn loại OnTrack DM6 Aux    
+ 9> press 'n' để tạo mới partition (part2)
+10> press 'p' để chọn primary partition
+11> press '2' để chọn partition number
+12> press 'enter' để chọn first cylinder (default)
+13> press 'enter' để chọn last cylinder (default)
+14> press 'w' để write change    
+}}}
+
+Tham khảo log sau:
+
+{{{
+$ fdisk /dev/sdb
+
+Command (m for help): p
+
+Disk /dev/sdb: 3963 MB, 3963617280 bytes
+122 heads, 62 sectors/track, 1023 cylinders
+Units = cylinders of 7564 * 512 = 3872768 bytes
+Disk identifier: 0x00000000
+
+   Device Boot      Start         End      Blocks   Id  System
+
+Command (m for help): n
+Command action
+   e   extended
+   p   primary partition (1-4)
+p
+Partition number (1-4): 1
+First cylinder (1-1023, default 1): 1
+Last cylinder, +cylinders or +size{K,M,G} (1-1023, default 1023): 16MB
+
+Command (m for help): t
+Selected partition 1
+Hex code (type L to list codes): 53
+Changed system type of partition 1 to 53 (OnTrack DM6 Aux3)
+
+Command (m for help): n
+Command action
+   e   extended
+   p   primary partition (1-4)
+p
+Partition number (1-4): 2
+First cylinder (17-1023, default 17):
+Using default value 17
+Last cylinder, +cylinders or +size{K,M,G} (17-1023, default 1023):
+Using default value 1023
+
+Command (m for help): w
+The partition table has been altered!
+
+Calling ioctl() to re-read partition table.
+Syncing disks.
+}}}
+
+Định dạng đĩa 
+
+{{{
+$ kpartx /dev/sdb
+$ mkfs.ext3 /dev/sdb2
+}}}
+
+===B> Chép Ảnh bootlets Vào PART 1===
+
+{{{
+
+1>  Đọc dev zero và ghi theo định dạng bs=512 vào file ảnh có tên mmc_boot_partition.raw
+
+$ cd /home/freescale/km233/bootloader/imx-bootlets-src-17.04.2011-km233
+$ dd if=/dev/zero of=mmc_boot_partition.raw bs=512 count=4
+
+2> Đọc file ảnh và ghi vào mmc_boot_partition.raw
+
+- Trường hợp boot Linux trực tiếp:
+
+$ dd if=imx23_linux.sb of=mmc_boot_partition.raw ibs=512 seek=4 conv=sync,notrunc
+
+- Trường hợp sử dụng u-boot:
+
+$ dd if=imx23_uboot.sb of=mmc_boot_partition.raw ibs=512 seek=4 conv=sync,notrunc
+
+3> Cuối cùng chép kết quả vào part1 của MicroSD
+
+$ dd if=mmc_boot_partition.raw of=/dev/sdb1
+}}}
+
+Bước chép ảnh có thể dùng script để tiết kiệm thời gian, tham khảo file 
+STORE_BOOT_STREAM.sh trong thư mục mx-bootlets-src-17.04.2011-km233.
+
+===B> Chép Rootfs Vào PART 2===
+
+{{{
+$ cd /home/freescale/km233/rootfs
+$ mkdir mnt
+$ mkfs /dev/sdb2
+$ mount /dev/sdb2 mnt
+$ cd mnt
+$ tar -jxvf ../rootfs-km233-27052011.tar.bz2 
+}}}
+
+Xong các bước trên ta có thể insert card vào board và tiến hành boot Linux thử.
+
+Thông tin đăng nhập:
+
+{{{
+freescale login: root
+Password: km233
+}}}  

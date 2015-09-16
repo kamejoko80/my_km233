@@ -1,0 +1,105 @@
+= MP3 VOICE RECORDING SỬ DỤNG KM233 =
+
+ Có thể sử dụng phần mềm của alsa để thu âm và lưu trữ thành file (.wav .raw .voc .au). Về input, KM233 có 2 đường bao gồm Line-In (stereo) và Mic-In (mono). Để record âm thanh, trước tiên ta thực hiện bước cấu hình input theo bước sau:
+
+{{{
+$ alsamixer
+}}}
+
+[http://km233.googlecode.com/svn/trunk/Tutorial/Image/alsamixer.PNG]
+
+Sử dụng phím Left Right Up Down để di chuyển con trỏ, set Line In cho các kênh Left ADC và Right ADC. Việc cấu hình được lưu tạm thời bằng cách ấn phím ESC. Ở lần boot tiếp theo các cấu hình này được chuyển lại thành default, để lưu lại cấu hình chúng ta cần phải dùng lệnh: 
+
+{{{
+$ alsactl store
+}}}
+
+Cấu hình sẽ được lưu vào file asound.state theo đường dẫn :
+
+{{{
+/etc/asound.state
+}}}
+
+Và trong quá trình boot hệ thống, chúng ta cần load lại cấu hình bằng cách dùng option restore.
+
+{{{
+$ alsactl restore
+}}}
+
+Có thể chạy lệnh này khi hệ thống start up bằng cách add vào script rc.local:
+
+{{{
+$ vi /etc/rc.d/rc.local
+
+add dòng sau:
+
+# restore alsamixer configuration
+echo "restore alsamixer configuration"
+/usr/sbin/alsactl restore
+}}} 
+
+Alsa cung cấp 1 số file .wav ví dụ trong thư mục "/usr/share/sounds/alsa/", chúng ta có thể sử dụng aplay để test ngõ ra sound card
+
+Lệnh sau thực hiện thu âm với định dạng dữ liệu unsigned 8 bit tần số mẫu 8KHz và lưu file theo định dạng .wav
+
+{{{
+$ arecord -f U8 -r 8000 -t wav > out.wav
+}}}
+
+Sử dụng aplay để test kết quả
+
+{{{
+$ aplay out.wav
+}}}
+
+Chuyển đổi file out.wav sang out.mp3 dùng lame:
+
+{{{
+$ lame -f -b 8000 out.wav out.mp3
+}}}
+
+Test kết quả với madplay
+
+{{{
+$ madplay out.mp3
+}}}
+
+Chương trình lame có thể chấp nhận data từ stdin/stdout và convert sang file mp3. Vì thế, khi kết hợp arecord với lame chúng ta có được chức năng record tín hiệu voice, convert và lưu file mp3 một cách realtime.
+
+Sử dụng unsigned 8 bit sample:
+
+{{{
+$ arecord -f U8 -r 8000 -t wav | lame - out.mp3
+
+Option -f đối với lame tăng tốc độ convert ngược lại chất lượng âm thanh sẽ giảm đi.
+
+$ arecord -f U8 -r 8000 -t wav | lame -f - out.mp3
+
+}}}
+
+Sử dụng singed 16 bit sample:
+
+{{{
+$ arecord -f S16_LE -r 8000 -t wav | lame - out.mp3 
+$ arecord -f S16_LE -r 8000 -t wav | lame -f - out.mp3
+}}}
+
+Các trường hợp record thành công với các tần số sampling cao hơn:
+
+{{{
+$ arecord -f S16_LE -r 11025 -t wav | lame - out.mp3 
+$ arecord -f S16_LE -r 16000 -t wav | lame -f - out.mp3
+}}}
+
+Các trường hợp tần số cao hơn hoặc sample với độ rộng bit lớn hơn thì ko thể record được vì bộ đệm bị tràn (overrun!!!).
+
+Tham khảo:
+http://rightsock.com/~kjw/Tech/usb-sound-C-Media.html
+
+Sửa lại command thành
+
+arecord -D plughw:0,0 -d 10 | aplay -D plughw:0,0
+
+Thay vì
+
+arecord -D hw:0,0 -d 10 - | aplay -D hw:2,0 -   

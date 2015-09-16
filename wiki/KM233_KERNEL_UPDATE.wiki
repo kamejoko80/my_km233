@@ -1,0 +1,62 @@
+= CẬP NHẬT KERNEL MỚI  =
+  
+Tính năng thêm vào:
+
+  - key_button thông qua LRADC1.  
+
+= Chuẩn bị các file =
+
+[http://km233.googlecode.com/svn/trunk/src/linux-2.6.35.3-km233-17062011.diff.gz linux-2.6.35.3-km233-17062011.diff.gz]
+
+[http://www.kernel.org/pub/linux/kernel/v2.6/linux-2.6.35.3.tar.bz2 linux-2.6.35.3.tar.bz2 ]
+
+Chép 2 files trên vào đường dẫn:
+
+{{{
+/home/freescale/km233/kernel/
+}}}
+
+Thực hiện giải nén source kernel gốc:
+
+{{{
+$ tar -jxvf linux-2.6.35.3.tar.bz2 
+}}}
+
+Thực hiện patch source kernel:
+
+{{{
+$ cd linux-2.6.35.3
+$ zcat ../linux-2.6.35.3-km233-17062011.diff.gz | patch -p1 
+}}}
+
+Thực hiện cấu hình linux kernel:
+
++ Cấu hình tối thiểu (lược bỏ một số driver không cần thiết):
+
+{{{
+$ cd linux-2.6.35.3
+$ cp km233_defconfig_minimal .config 
+}}}
+
++ Cấu hình full (Bao gồm các driver webcam, TVENC...):
+
+{{{
+$ cd linux-2.6.35.3
+$ cp km233_defconfig_full .config 
+}}}
+
+Thực hiện build kernel:
+
+{{{
+$ make ARCH=arm CROSS_COMPILE=arm-none-linux-gnueabi- zImage
+}}}
+
+Các bước sao chép ảnh vào uSD card và boot Linux xin vui lòng tham khảo mục [http://code.google.com/p/km233/wiki/KM233_GETTING_STARTED KM233_GETTING_STARTED]
+
+=Chú ý=
+
+Sau khi build kernel xong, chúng ta cần phải khai báo lại đường dẫn file ảnh Linux kernel trong build script của bootlets và phải build lại bootlets trước khi chép kết quả vào uSD card.
+
+{{{
+export DFT_IMAGE=/home/freescale/km233/kernel/linux-2.6.35.3/arch/arm/boot/zImage
+}}}

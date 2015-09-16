@@ -1,0 +1,119 @@
+= GIỚI THIỆU =
+
+LTIB (Linux Target Image Builder) là công cụ build Linux (BSP) cho các board nhúng dựa trên các chíp MPU của Freescale bao gồm PowerPC, ARM, Coldfire. LTIB được phát triển bởi trang [http://www.bitshrine.org/ltib/], đây là môi trường cross compile khá hữu dụng hỗ trợ cho chúng ta xây dựng và phát triển hệ thống nhúng theo cách dễ dàng và tiện lợi nhất.
+
+[http://www.bitshrine.org/ltib/graphics/ltib_build.png]
+
+
+= YÊU CẦU VỀ HOST PC =
+
+Về host PC, chúng ta nên dùng Fedora core 10 trở lên, ta mặc định ở các hướng dẫn sau đây được thực hiện theo user root.
+
+Chúng ta phải đảm bảo các gói phần mềm mà LTIB yêu cầu đã được cài đặt sẵn vào máy tính, nếu chưa cài đặt ta có thể thực hiện các lệnh sau:
+
+{{{
+$ yum install tcl-devel
+$ yum install lzo-devel
+$ yum whatprovides ld-linux.so.2
+$ yum install glibc-devel.i386
+$ yum install zlib-devel.i386
+$ yum install libgcc.i386
+$ yum install libstdc++-devel.i386
+}}}
+
+Kế tiếp, chúng ta thực hiện lệnh sau:
+
+{{{
+$ visudo
+}}}
+
+Add dòng sau vào cuối file:
+
+{{{
+root ALL = NOPASSWD: /bin/rpm, /opt/freescale/ltib/usr/bin/rpm
+}}}
+
+= CÀI ĐẶT =
+
+Trước tiên ta download gói phần cài đặt ở link sau (Freescale yêu cầu login vào account đã được đăng ký trước):
+
+  [http://cache.freescale.com/lgfiles/bsps/L2.6.35_10.11.01_ER_source.tar.gz?fsrch=1&sr=1 L2.6.35_10.11.01_ER_source.tar.gz]. 
+
+Chép file L2.6.35_10.11.01_ER_source.tar.gz vào thư mục /home/freescale
+
+{{{
+$ tar -zxvf L2.6.35_10.11.01_ER_source.tar.gz
+$ cd L2.6.35_10.11.01_ER_source
+}}}
+
+Để chương trình cài đặt ko hiện các agreement về lisence, chúng ta có thể xóa nội dung file EULA. Do ta đang thực hiện dưới quyền root user, vì thế ta cần edit lại file install bằng cách comment out các đoạn sau:
+
+{{{
+#die <<TXT if $> == 0;
+
+#You should not be root when installing LTIB
+
+#TXT
+}}}
+
+Sau đó ta tiến hành chạy script install:
+
+{{{
+$ ./install
+
+You are about to install the LTIB (GNU/Linux Target Image Builder)
+
+Before installing LTIB, you must read and accept the EULA
+(End User License Agreement) which will be presented next.
+
+Do you want to continue ? Y|n
+y
+
+I have read and accept the EULA (yes|no):
+yes
+
+Where do you want to install LTIB ? (/home/freescale/L2.6.35_10.11.01_ER_source)
+/home/freescale
+}}}
+
+Script sẽ tự động giải nén các gói cần thiết, chuẩn bị cho công đoạn build toolchains và cài đặt tiếp theo. Sau bước này, chúng ta có được thư mục ltib theo đường dẫn:
+
+{{{
+/home/freescale/ltib
+}}}
+
+{{{
+$ cd /home/freescale/ltib
+$ ./ltib
+You should not be root when running ltib, do you really
+want to continue ?  y|N
+y
+
+Installing host support packages.
+
+This only needs to be done once per host, but may take up to
+an hour to complete ...
+
+If an error occurs, a log file with the full output may be found in:
+/home/freescale/ltib/host_config.log
+}}}
+
+Sau bước này LTIB tiến hành giải nén và build các gói cần thiết, nếu có lỗi xảy ra chúng ta có thể xem nội dung host_config.log để tìm nguyên nhân và khắc phục lỗi nếu cần thiết. Tùy vào cấu hình máy tính, thời gian của công đoạn này tốn cỡ 1-2 giờ.
+
+= CẤU HÌNH BAN ĐẦU =
+
+Sau khi bước trên được thực hiện xong, LTIB tự động đưa ra menu để chúng ta chọn platform cần build, khi đó ta chọn platform theo hình sau:
+
+[http://ujtag.googlecode.com/svn/trunk/Image/ltib_platform_selection.PNG]
+
+Ở bước lựa chọn toolchains, các gói phần mềm thì ta nên để mặc định, về cấu hình mạng chúng ta có thể thiết lập IP tĩnh hoặc dùng DHCP.
+
+[http://ujtag.googlecode.com/svn/trunk/Image/ltib_package_selection.PNG]
+
+Sau khi lựa chọn các mục, save lại cấu hình, khi thoát khỏi menu, LTIB sẽ tự động build các gói phần mềm đã chọn. Nếu build thành công, LTIB sẽ thông báo build successfully.
+
+= PATCH LTIB =
+
+Để có thể biên dịch được QT, Opencv chúng ta cần thực hiện patch LTIB theo đường dẫn sau:
+
+[http://km233.googlecode.com/svn/trunk/tools/LTIB/patch/ PATCH LTIB]

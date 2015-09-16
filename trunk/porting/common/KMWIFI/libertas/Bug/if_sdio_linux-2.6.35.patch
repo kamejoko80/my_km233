@@ -1,0 +1,112 @@
+--- /home/vuarm/working/android/imx535/sources/i.MX53-QSB-Android-Gingerbread-Release4.3/src/kernel_imx/drivers/net/wireless/libertas/if_sdio.c	2012-11-19 11:58:38.203235057 +0700
++++ /home/phuong/WORKSPACE/freescale/android/adeneo/kernel_imx/drivers/net/wireless/libertas/if_sdio.c	2012-11-20 00:53:35.000000000 +0700
+@@ -702,6 +702,13 @@
+ 
+ 	lbs_deb_enter(LBS_DEB_SDIO);
+ 
++	/*
++	 * Disable interrupts
++     */
++	sdio_claim_host(card->func);
++	sdio_writeb(card->func, 0x00, IF_SDIO_H_INT_MASK, &ret);
++	sdio_release_host(card->func);
++
+ 	sdio_claim_host(card->func);
+ 	scratch = if_sdio_read_scratch(card, &ret);
+ 	sdio_release_host(card->func);
+@@ -710,20 +717,28 @@
+ 		goto out;
+ 
+ 	lbs_deb_sdio("firmware status = %#x\n", scratch);
++	lbs_deb_sdio("scratch ret = %d\n", ret);
+ 
+ 	if (scratch == IF_SDIO_FIRMWARE_OK) {
+ 		lbs_deb_sdio("firmware already loaded\n");
+ 		goto success;
++    } else if ((card->model == IF_SDIO_MODEL_8686) && (scratch & 0x7fff)) {
++		lbs_deb_sdio("firmware may be running\n");
++		goto success;
+ 	}
+ 
+ 	ret = if_sdio_prog_helper(card);
+ 	if (ret)
+ 		goto out;
+ 
++	lbs_deb_sdio("Helper firmware loaded\n");
++
+ 	ret = if_sdio_prog_real(card);
+ 	if (ret)
+ 		goto out;
+ 
++	lbs_deb_sdio("Firmware loaded\n");
++
+ success:
+ 	sdio_claim_host(card->func);
+ 	sdio_set_block_size(card->func, IF_SDIO_BLOCK_SIZE);
+@@ -871,6 +886,38 @@
+ 
+ }
+ 
++static struct mmc_host *reset_host;
++
++static void if_sdio_reset_card_worker(struct work_struct *work)
++{
++	/*
++	 * The actual reset operation must be run outside of lbs_thread. This
++	 * is because mmc_remove_host() will cause the device to be instantly
++	 * destroyed, and the libertas driver then needs to end lbs_thread,
++	 * leading to a deadlock.
++	 *
++	 * We run it in a workqueue totally independent from the if_sdio_card
++	 * instance for that reason.
++	 */
++
++	lbs_pr_info("Resetting card...");
++	mmc_remove_host(reset_host);
++	mmc_add_host(reset_host);
++}
++static DECLARE_WORK(card_reset_work, if_sdio_reset_card_worker);
++
++static void if_sdio_reset_card(struct lbs_private *priv)
++{
++	struct if_sdio_card *card = priv->card;
++
++	if (work_pending(&card_reset_work))
++		return;
++
++	reset_host = card->func->card->host;
++	schedule_work(&card_reset_work);
++}
++
++
+ /*******************************************************************/
+ /* SDIO callbacks                                                  */
+ /*******************************************************************/
+@@ -1062,8 +1109,7 @@
+ 	priv->enter_deep_sleep = if_sdio_enter_deep_sleep;
+ 	priv->exit_deep_sleep = if_sdio_exit_deep_sleep;
+ 	priv->reset_deep_sleep_wakeup = if_sdio_reset_deep_sleep_wakeup;
+-
+-	priv->fw_ready = 1;
++	priv->reset_card = if_sdio_reset_card;
+ 
+ 	sdio_claim_host(func);
+ 
+@@ -1085,6 +1131,8 @@
+ 	if (ret)
+ 		goto reclaim;
+ 
++	priv->fw_ready = 1;
++
+ 	/*
+ 	 * FUNC_INIT is required for SD8688 WLAN/BT multiple functions
+ 	 */
+@@ -1219,6 +1267,8 @@
+ 	/* Set the flag as user is removing this module. */
+ 	user_rmmod = 1;
+ 
++	cancel_work_sync(&card_reset_work);
++
+ 	sdio_unregister_driver(&if_sdio_driver);
+ 
+ 	lbs_deb_leave(LBS_DEB_SDIO);

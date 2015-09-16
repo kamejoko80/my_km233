@@ -1,0 +1,42 @@
+= GIỚI THIỆU =
+
+KM233_SOM (LOCUS) là CPU module sử dụng MPU i.MX233 của Freescale. Module được thiết kế nhằm phục vụ cho việc học tập Linux.
+
+[http://stm32vn.googlecode.com/svn/trunk/image/IMX233_SOM.jpg]
+
+= THÔNG SỐ =
+
+{{{
+. MPU ARM926EJ-S™, 454 MHz maximum speed
+   . 16 KB I/D Cache
+   . Power Management Unit (PMU)
+   . Mixed Signal Audio
+   . LCD Controller
+   . HS Device/Host + PHY
+   . 3 x UART
+   . 2 x SSP
+   . I2C Master
+   . 6 Channel 12-bit Low Resolution ADC (LRADC)
+   . Serial Audio IF x2
+   . SPDIF
+   . External memory interface:
+     + 1.8V mDDR, DDR1 w/2.5V regulator
+     + Hardware BCH (up to 20-bit correction) and RS ECC8
+     + NAND Flash support for SLC/MLC and managed NAND
+
+. MEMORY DDR 64MB 133MHz (266M data rate)
+. Micro SD card slot (2nd uSD option)
+. ATMEL SPI serial data flash (option)
+. I2C eeprom.
+. Quadrant 2.54 mm pitch pin header I/O output (easy to design hardware)
+}}}
+
+
+= KÍCH THƯỚC MODULE (MM) =
+
+[http://km233.googlecode.com/svn/trunk/image/KM233_SOM_DIMENSION.PNG]
+
+
+= FOOTPRINT CHO DEV BOARD =
+
+[http://km233.googlecode.com/svn/trunk/hardware/footprint/KM233_SOM_HEADER.rar Download footprint cho Allegro PCB Editor]  
